@@ -1,0 +1,268 @@
+import React from 'react';
+import { DocumentModel } from '../../types';
+import { getDocumentTypeInfo } from '../../utils/documentCalculations';
+import { formatCurrency } from '../../utils/thaiBaht';
+import { PromptPayBox } from './PromptPayBox';
+import { MapPin } from 'lucide-react';
+
+interface TemplateProps {
+  document: DocumentModel;
+}
+
+export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
+  const typeInfo = getDocumentTypeInfo(document.type);
+  const company = document.company || ({} as typeof document.company);
+  const customer = document.customer || ({} as typeof document.customer);
+  const items = Array.isArray(document.items) ? document.items : [];
+
+  return (
+    <div className="bg-white p-5 sm:p-7 font-['Sarabun',sans-serif] text-slate-800 text-xs leading-relaxed max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[285mm] print:min-h-0 print:p-3 print:m-0 print:max-w-full flex flex-col justify-between border-t-8 border-slate-800">
+      <div>
+        {/* Header Block */}
+        <div className="flex justify-between items-start pb-3 border-b border-slate-300 mb-3">
+          <div className="w-3/5 pr-3">
+            <div className="flex items-center gap-2.5 mb-1.5">
+              {company.logoUrl && (
+                <img
+                  src={company.logoUrl}
+                  alt="Company Logo"
+                  className="h-10 w-auto max-w-[110px] object-contain"
+                />
+              )}
+              <div>
+                <h1 className="font-bold text-base text-slate-950 uppercase tracking-wide">
+                  {company.name || 'ชื่อสถานประกอบการ'}
+                </h1>
+                {company.nameEn && (
+                  <p className="text-[11px] text-slate-500">{company.nameEn}</p>
+                )}
+              </div>
+            </div>
+            <div className="text-[11px] text-slate-600 space-y-0.5">
+              <p>{company.address || '-'}</p>
+              <p className="text-slate-700 font-medium">
+                เลขประจำตัวผู้เสียภาษี: <span className="font-mono font-bold text-slate-900">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขา ${company.branchNo || '-'}`})
+              </p>
+              <p className="text-[10px] text-slate-500">
+                โทร: {company.phone || '-'} | อีเมล: {company.email || '-'}
+              </p>
+            </div>
+          </div>
+
+          <div className="w-2/5 text-right pl-3 border-l border-slate-200">
+            <div className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+              {typeInfo.titleTh}
+            </div>
+            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+              {typeInfo.titleEn}
+            </div>
+            <div className="text-[9px] bg-slate-100 text-slate-700 inline-block px-1.5 py-0.2 rounded font-medium mb-1">
+              {typeInfo.subtitleTh}
+            </div>
+
+            <div className="text-xs space-y-0.5 text-slate-700">
+              <div>
+                <span className="text-slate-500 text-[10px]">เลขที่ / No: </span>
+                <span className="font-bold font-mono text-slate-900 text-xs sm:text-sm">{document.documentNumber}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 text-[10px]">วันที่ / Date: </span>
+                <span className="font-medium text-xs">{document.issueDate}</span>
+              </div>
+              {document.dueDate && (
+                <div>
+                  <span className="text-slate-500 text-[10px]">ครบกำหนด: </span>
+                  <span className="font-semibold text-rose-700 text-xs">{document.dueDate}</span>
+                </div>
+              )}
+              {document.referenceNumber && (
+                <div>
+                  <span className="text-slate-500 text-[10px]">อ้างอิง / Ref: </span>
+                  <span className="font-mono text-xs">{document.referenceNumber}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Customer Info Box */}
+        <div className="border border-slate-300 rounded p-3 mb-4 text-xs bg-slate-50/40">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="font-bold text-slate-900 block mb-1">
+                ชื่อลูกค้า / Customer: {customer.name || '-'}
+              </span>
+              {customer.contactPerson && (
+                <div className="text-slate-700">ผู้ติดต่อ: {customer.contactPerson}</div>
+              )}
+              <div className="text-slate-600 mt-1">ที่อยู่: {customer.address || '-'}</div>
+            </div>
+            <div className="space-y-1 text-right sm:text-left">
+              <div>
+                <span className="text-slate-500">เลขประจำตัวผู้เสียภาษี: </span>
+                <span className="font-mono font-bold">{customer.taxId || '-'}</span>
+              </div>
+              <div>
+                <span className="text-slate-500">สาขา: </span>
+                <span>
+                  {customer.branchType === 'headquarters'
+                    ? 'สำนักงานใหญ่ (00000)'
+                    : `สาขาที่ ${customer.branchNo || '-'}`}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-500">
+                โทร: {customer.phone || '-'} | อีเมล: {customer.email || '-'}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Items Table */}
+        <div className="mb-4">
+          <table className="w-full text-xs text-left border-collapse border border-slate-300">
+            <thead>
+              <tr className="bg-slate-800 text-white">
+                <th className="py-2 px-2.5 text-center w-12 border-r border-slate-700">ลำดับ</th>
+                <th className="py-2 px-3 border-r border-slate-700">รายการ / Description</th>
+                <th className="py-2 px-2 text-center w-16 border-r border-slate-700">จำนวน</th>
+                <th className="py-2 px-2 text-center w-14 border-r border-slate-700">หน่วย</th>
+                <th className="py-2 px-2.5 text-right w-24 border-r border-slate-700">ราคา/หน่วย</th>
+                <th className="py-2 px-2 text-right w-16 border-r border-slate-700">ส่วนลด</th>
+                <th className="py-2 px-2.5 text-right w-28">จำนวนเงิน</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-300">
+              {items.map((item, idx) => {
+                const rawTotal = item.quantity * item.unitPrice;
+                const discount = item.discountType === 'percent'
+                  ? rawTotal * (item.discountValue / 100)
+                  : item.discountValue;
+                const itemTotal = rawTotal - discount;
+
+                return (
+                  <tr key={item.id || idx} className="border-b border-slate-200">
+                    <td className="py-2 px-2.5 text-center border-r border-slate-300 font-mono">{idx + 1}</td>
+                    <td className="py-2 px-3 border-r border-slate-300">
+                      <div className="font-semibold text-slate-900">{item.name}</div>
+                      {item.description && (
+                        <div className="text-[11px] text-slate-500">{item.description}</div>
+                      )}
+                    </td>
+                    <td className="py-2 px-2 text-center border-r border-slate-300 font-mono">{item.quantity}</td>
+                    <td className="py-2 px-2 text-center border-r border-slate-300 text-slate-600">{item.unit || 'ชิ้น'}</td>
+                    <td className="py-2 px-2.5 text-right border-r border-slate-300 font-mono">{formatCurrency(item.unitPrice)}</td>
+                    <td className="py-2 px-2 text-right border-r border-slate-300 font-mono text-slate-500">
+                      {item.discountValue > 0
+                        ? item.discountType === 'percent'
+                          ? `${item.discountValue}%`
+                          : formatCurrency(item.discountValue)
+                        : '-'}
+                    </td>
+                    <td className="py-2 px-2.5 text-right font-bold text-slate-900 font-mono">
+                      {formatCurrency(itemTotal)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Calculation & Thai Baht Block */}
+        <div className="grid grid-cols-12 gap-3 mb-4 page-break-inside-avoid text-xs">
+          <div className="col-span-7 flex flex-col justify-between space-y-2">
+            <div className="border border-slate-300 bg-slate-100 p-2.5 rounded">
+              <div className="text-[10px] text-slate-500 font-bold uppercase">จำนวนเงินตัวอักษร</div>
+              <div className="font-bold text-slate-900 text-sm">{document.thaiBahtText}</div>
+            </div>
+
+            <div className="space-y-1 text-slate-600 text-[11px]">
+              {document.paymentTerms && (
+                <div><span className="font-bold text-slate-800">เงื่อนไขชำระเงิน:</span> {document.paymentTerms}</div>
+              )}
+              {document.notes && (
+                <div><span className="font-bold text-slate-800">หมายเหตุ:</span> {document.notes}</div>
+              )}
+            </div>
+          </div>
+
+          <div className="col-span-5 border border-slate-300 rounded p-3 bg-slate-50/70 space-y-1.5">
+            <div className="flex justify-between text-slate-600">
+              <span>รวมมูลค่าสินค้า:</span>
+              <span className="font-mono">{formatCurrency(document.subtotal)} บาท</span>
+            </div>
+            {document.discountTotal > 0 && (
+              <div className="flex justify-between text-rose-600">
+                <span>ส่วนลด:</span>
+                <span className="font-mono">-{formatCurrency(document.discountTotal)} บาท</span>
+              </div>
+            )}
+            <div className="flex justify-between font-medium">
+              <span>ยอดสุทธิก่อนภาษี:</span>
+              <span className="font-mono">{formatCurrency(document.afterDiscount)} บาท</span>
+            </div>
+            {document.vatType !== 'none' && (
+              <div className="flex justify-between text-slate-600 border-t border-slate-200 pt-1">
+                <span>ภาษีมูลค่าเพิ่ม VAT {document.vatRate}%:</span>
+                <span className="font-mono">{formatCurrency(document.vatAmount)} บาท</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-sm text-slate-900 border-t-2 border-slate-800 pt-1">
+              <span>จำนวนเงินรวมทั้งสิ้น:</span>
+              <span className="font-mono text-base">฿{formatCurrency(document.grandTotal)}</span>
+            </div>
+            {document.withholdingTaxRate > 0 && (
+              <>
+                <div className="flex justify-between text-[11px] text-amber-700">
+                  <span>หัก ณ ที่จ่าย {document.withholdingTaxRate}%:</span>
+                  <span className="font-mono">-{formatCurrency(document.withholdingTaxAmount)} บาท</span>
+                </div>
+                <div className="flex justify-between font-bold bg-slate-200 p-1.5 rounded text-slate-900">
+                  <span>ยอดจ่ายสุทธิ:</span>
+                  <span className="font-mono">฿{formatCurrency(document.netPayment)}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-2">
+          <PromptPayBox document={document} accentColor="#0f172a" />
+        </div>
+      </div>
+
+      {/* Signature Section */}
+      <div className="grid grid-cols-2 gap-4 pt-2.5 border-t border-slate-300 page-break-inside-avoid text-xs">
+        <div className="text-center p-2 border border-slate-300 rounded bg-slate-50/50">
+          <div className="h-7"></div>
+          <div className="w-36 border-b border-slate-400 mx-auto my-1"></div>
+          <div className="font-bold text-slate-800 text-[11px]">ผู้สั่งซื้อ / ผู้รับบริการ</div>
+          <div className="text-[9px] text-slate-500">วันที่ ......./......./...........</div>
+        </div>
+        <div className="text-center p-2 border border-slate-300 rounded bg-slate-50/50 relative">
+          {document.showStamp && company.stampUrl && (
+            <img
+              src={company.stampUrl}
+              alt="Stamp"
+              className="absolute right-2 top-1 w-12 h-12 opacity-75 object-contain pointer-events-none"
+            />
+          )}
+          <div className="h-7 flex items-center justify-center">
+            {document.showSignature && company.signatureUrl ? (
+              <img
+                src={company.signatureUrl}
+                alt="Signature"
+                className="max-h-7 w-auto object-contain"
+              />
+            ) : null}
+          </div>
+          <div className="w-36 border-b border-slate-400 mx-auto my-1"></div>
+          <div className="font-bold text-slate-800 text-[11px]">
+            {document.preparedByName || company.signatureName || 'ผู้มีอำนาจลงนาม'}
+          </div>
+          <div className="text-[9px] text-slate-500">{company.signaturePosition || company.name || 'บริษัท'}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
