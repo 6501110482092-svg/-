@@ -6,24 +6,33 @@
   }
 }
 
-/* Print specific styles for perfect A4 output */
+/* Print specific styles for multi-page A4 output */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 6mm 8mm;
+    margin: 8mm 10mm;
   }
 
-  html, body, #root {
+  html, body {
     margin: 0 !important;
     padding: 0 !important;
     background-color: #ffffff !important;
     color: #0f172a !important;
     height: auto !important;
-    min-height: auto !important;
+    min-height: 100% !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     color-adjust: exact !important;
+  }
+
+  #root,
+  .app-container,
+  main,
+  div {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
   }
 
   .no-print,
@@ -55,6 +64,11 @@
   .page-break-inside-avoid {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
+  }
+
+  .page-break-after-always {
+    page-break-after: always !important;
+    break-after: page !important;
   }
 
   table {

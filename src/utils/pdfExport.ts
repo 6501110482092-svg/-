@@ -51,7 +51,7 @@ export const printDocumentDirectly = async (elementId: string): Promise<boolean>
           <style>
             @page {
               size: A4 portrait;
-              margin: 6mm 8mm;
+              margin: 8mm 10mm;
             }
             *, *::before, *::after {
               box-sizing: border-box;
@@ -64,8 +64,10 @@ export const printDocumentDirectly = async (elementId: string): Promise<boolean>
               padding: 0;
               background-color: #ffffff !important;
               color: #0f172a;
+              height: auto !important;
+              min-height: 100% !important;
+              overflow: visible !important;
               font-family: 'Sarabun', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-              font-size: 12px;
             }
             .a4-print-root {
               width: 100% !important;
@@ -76,6 +78,24 @@ export const printDocumentDirectly = async (elementId: string): Promise<boolean>
               border: none !important;
               transform: none !important;
               min-height: auto !important;
+              overflow: visible !important;
+            }
+            .page-break-inside-avoid {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+            table {
+              page-break-inside: auto;
+            }
+            tr {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+            thead {
+              display: table-header-group;
+            }
+            tfoot {
+              display: table-footer-group;
             }
             @media print {
               body {
@@ -175,11 +195,10 @@ export const exportDocumentToPdf = async (
     const imgWidth = pdfWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Check if it fits on 1 page with slight tolerance, or needs multi-page
-    if (imgHeight <= pdfHeight + 15) {
-      // Scale slightly to fit perfectly on exactly 1 single A4 page
-      const fitHeight = Math.min(imgHeight, pdfHeight);
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, fitHeight, undefined, 'FAST');
+    // Check if it fits on 1 page or needs multi-page
+    if (imgHeight <= pdfHeight) {
+      // Fits on exactly 1 single A4 page
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, imgHeight, undefined, 'FAST');
     } else {
       // Multi-page document
       let heightLeft = imgHeight;
@@ -188,7 +207,7 @@ export const exportDocumentToPdf = async (
       pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
       heightLeft -= pdfHeight;
 
-      while (heightLeft > 5) {
+      while (heightLeft > 0) {
         position = position - pdfHeight;
         pdf.addPage();
         pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight, undefined, 'FAST');
