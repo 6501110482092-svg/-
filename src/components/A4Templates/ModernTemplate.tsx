@@ -22,7 +22,7 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
     <div className="bg-white p-8 sm:p-10 font-['Sarabun',sans-serif] text-slate-800 text-sm leading-relaxed max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[297mm] print:min-h-0 print:p-6 print:m-0 print:max-w-full flex flex-col justify-between">
       <div>
         {/* Top Header Row */}
-        <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-4 mb-4">
+        <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-3.5 mb-3.5">
           {/* Company Brand & Details */}
           <div className="w-7/12 pr-4">
             <div className="flex items-center gap-3 mb-2">
@@ -30,79 +30,79 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
                 <img
                   src={company.logoUrl}
                   alt="Company Logo"
-                  className="h-14 w-auto max-w-[140px] object-contain rounded"
+                  className="h-12 w-auto max-w-[130px] object-contain rounded shrink-0"
                 />
               ) : (
-                <div className="w-12 h-12 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-xl shadow-sm">
+                <div className="w-11 h-11 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
                   {(company.name || 'บ').charAt(0)}
                 </div>
               )}
               <div>
-                <h1 className="font-bold text-lg text-slate-900 leading-tight">
+                <h1 className="font-bold text-lg sm:text-xl text-slate-900 leading-snug">
                   {company.name || 'ชื่อสถานประกอบการ'}
                 </h1>
                 {company.nameEn && (
-                  <p className="text-xs text-slate-500 font-medium">{company.nameEn}</p>
+                  <p className="text-xs sm:text-sm text-slate-600 font-medium">{company.nameEn}</p>
                 )}
               </div>
             </div>
 
-            <div className="text-xs text-slate-600 space-y-0.5 mt-1.5">
-              <div className="flex items-start gap-1">
+            <div className="text-xs sm:text-[13px] text-slate-700 space-y-0.5 mt-1.5 leading-relaxed">
+              <div className="flex items-start gap-1.5">
                 <MapPin className="w-3.5 h-3.5 text-slate-400 mt-0.5 shrink-0" />
                 <span>{company.address || '-'}</span>
               </div>
-              <div className="flex flex-wrap gap-x-4 gap-y-0.5 pt-0.5">
-                <span className="font-medium text-slate-700">
-                  เลขประจำตัวผู้เสียภาษี: <span className="font-mono text-slate-900 font-bold">{company.taxId || '-'}</span>
+              <div className="flex flex-wrap items-center gap-x-3.5 gap-y-0.5 pt-0.5">
+                <span className="font-medium text-slate-800">
+                  เลขประจำตัวผู้เสียภาษี: <span className="font-mono text-slate-950 font-bold">{company.taxId || '-'}</span>
                 </span>
-                <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px]">
+                <span className="bg-slate-100 text-slate-800 px-2 py-0.5 rounded text-xs font-medium border border-slate-200">
                   {company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขาที่ ${company.branchNo || '-'}`}
                 </span>
               </div>
-              <div className="flex flex-wrap gap-x-4 text-slate-500 text-xs pt-0.5">
-                {company.phone && <span>โทร: {company.phone}</span>}
-                {company.email && <span>อีเมล: {company.email}</span>}
-                {company.website && <span>เว็บ: {company.website}</span>}
+              <div className="flex flex-wrap gap-x-3.5 gap-y-0.5 text-slate-700 text-xs pt-0.5">
+                {company.phone && <span>โทร: <strong className="font-medium text-slate-900">{company.phone}</strong></span>}
+                {company.email && <span>อีเมล: <strong className="font-medium text-slate-900">{company.email}</strong></span>}
+                {company.website && <span>เว็บ: <strong className="font-medium text-slate-900">{company.website}</strong></span>}
               </div>
             </div>
           </div>
 
           {/* Document Title & Meta */}
           <div className="w-5/12 text-right pl-3">
-            <div className="inline-block text-right">
-              <span className="inline-block px-3 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full uppercase tracking-wider mb-1">
+            <div className="inline-block text-right mb-1">
+              <span className="inline-block px-2.5 py-0.5 bg-indigo-50 text-indigo-700 text-xs font-bold rounded-full uppercase tracking-wider mb-1 border border-indigo-100">
                 {typeInfo.subtitleTh}
               </span>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-700 tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-indigo-700 tracking-tight leading-tight">
                 {isEn ? typeInfo.titleEn : typeInfo.titleTh}
               </h2>
               {isBilingual && (
-                <p className="text-xs font-semibold text-slate-500 tracking-wider">
+                <p className="text-xs font-bold text-slate-500 tracking-wider uppercase mt-0.5">
                   {typeInfo.titleEn}
                 </p>
               )}
             </div>
 
-            <div className="mt-2 bg-slate-50 p-2.5 rounded-lg border border-slate-200/80 text-xs text-left space-y-1">
-              <div className="flex justify-between">
-                <span className="text-slate-500">เลขที่เอกสาร / No:</span>
+            <div className="mt-1.5 bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-xs text-left space-y-1 shadow-2xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600 font-medium">เลขที่เอกสาร / No:</span>
                 <span className="font-bold text-slate-900 font-mono text-sm">{document.documentNumber}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">วันที่ / Date:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600 font-medium">วันที่ / Date:</span>
                 <span className="font-semibold text-slate-800">{document.issueDate}</span>
               </div>
               {document.dueDate && (
-                <div className="flex justify-between">
-                  <span className="text-slate-500">ครบกำหนด / Due Date:</span>
-                  <span className="font-semibold text-rose-700">{document.dueDate}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600 font-medium">ครบกำหนด / Due Date:</span>
+                  <span className="font-bold text-rose-700">{document.dueDate}</span>
                 </div>
               )}
               {document.referenceNumber && (
-                <div className="flex justify-between border-t border-slate-200/60 pt-1">
-                  <span className="text-slate-500">อ้างอิง / Ref:</span>
-                  <span className="font-mono font-medium text-slate-700">{document.referenceNumber}</span>
+                <div className="flex justify-between items-center border-t border-slate-200/80 pt-1">
+                  <span className="text-slate-600 font-medium">อ้างอิง / Ref:</span>
+                  <span className="font-mono font-medium text-slate-800">{document.referenceNumber}</span>
                 </div>
               )}
             </div>
@@ -110,32 +110,32 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
         </div>
 
         {/* Customer Information Block */}
-        <div className="bg-slate-50/70 p-3 rounded-lg border border-slate-200 mb-4 text-xs">
-          <div className="text-[11px] font-bold text-indigo-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-            <Building className="w-3.5 h-3.5" />
+        <div className="bg-slate-50/80 p-3 rounded-lg border border-slate-200 mb-3.5 text-xs sm:text-[13px]">
+          <div className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-1.5 flex items-center gap-1.5 pb-1 border-b border-slate-200/80">
+            <Building className="w-3.5 h-3.5 text-indigo-600" />
             <span>ข้อมูลลูกค้า / Customer Info</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <div className="font-bold text-sm text-slate-900 mb-0.5">
+            <div className="space-y-0.5">
+              <div className="font-bold text-sm sm:text-base text-slate-900 leading-snug">
                 {customer.name || '-'}
               </div>
               {customer.contactPerson && (
-                <div className="text-slate-700 font-medium text-xs">
-                  ผู้ติดต่อ: {customer.contactPerson}
+                <div className="text-slate-800 font-medium text-xs sm:text-[13px]">
+                  ผู้ติดต่อ: <span className="font-semibold">{customer.contactPerson}</span>
                 </div>
               )}
-              <div className="text-slate-600 text-xs mt-0.5">
+              <div className="text-slate-700 text-xs sm:text-[13px] leading-relaxed mt-0.5">
                 ที่อยู่: {customer.address || '-'}
               </div>
             </div>
-            <div className="space-y-0.5 sm:pl-3 sm:border-l border-slate-200 text-xs">
+            <div className="space-y-0.5 sm:pl-3.5 sm:border-l border-slate-200 text-xs sm:text-[13px]">
               <div className="flex items-center gap-2">
-                <span className="text-slate-500">เลขประจำตัวผู้เสียภาษี:</span>
-                <span className="font-bold font-mono text-slate-900">{customer.taxId || '-'}</span>
+                <span className="text-slate-600 font-medium">เลขประจำตัวผู้เสียภาษี:</span>
+                <span className="font-bold font-mono text-slate-950 text-xs sm:text-sm">{customer.taxId || '-'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-slate-500">สาขา:</span>
+                <span className="text-slate-600 font-medium">สาขา:</span>
                 <span className="font-medium text-slate-800">
                   {customer.branchType === 'headquarters'
                     ? 'สำนักงานใหญ่ (00000)'
@@ -143,9 +143,9 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
                 </span>
               </div>
               {(customer.phone || customer.email) && (
-                <div className="text-slate-600 text-xs pt-0.5">
-                  {customer.phone && <span className="mr-3">โทร: {customer.phone}</span>}
-                  {customer.email && <span>อีเมล: {customer.email}</span>}
+                <div className="text-slate-700 text-xs pt-0.5 flex flex-wrap gap-x-3.5">
+                  {customer.phone && <span>โทร: <strong className="font-medium text-slate-900">{customer.phone}</strong></span>}
+                  {customer.email && <span>อีเมล: <strong className="font-medium text-slate-900">{customer.email}</strong></span>}
                 </div>
               )}
             </div>

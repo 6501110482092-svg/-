@@ -18,54 +18,55 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ document }) => {
     <div className="bg-white p-6 sm:p-8 md:p-10 font-['Sarabun',sans-serif] text-slate-900 text-xs sm:text-sm leading-normal max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[297mm] print:min-h-0 print:p-4 print:m-0 print:max-w-full flex flex-col justify-between border border-slate-300">
       <div>
         {/* Header with Title Centered */}
-        <div className="text-center pb-3 border-b-2 border-slate-900 mb-4">
-          <h1 className="text-xl font-bold tracking-tight">{company.name || 'ชื่อสถานประกอบการ'}</h1>
-          <p className="text-xs text-slate-600">{company.address || '-'}</p>
-          <p className="text-xs text-slate-700">
-            เลขประจำตัวผู้เสียภาษี {company.taxId || '-'} ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขาที่ ${company.branchNo || '-'}`}) โทร: {company.phone || '-'}
+        <div className="text-center pb-3 border-b-2 border-slate-900 mb-3.5">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950">{company.name || 'ชื่อสถานประกอบการ'}</h1>
+          {company.nameEn && <p className="text-xs sm:text-sm font-medium text-slate-600 mt-0.5">{company.nameEn}</p>}
+          <p className="text-xs sm:text-sm text-slate-700 mt-0.5">{company.address || '-'}</p>
+          <p className="text-xs sm:text-sm text-slate-800 mt-0.5">
+            เลขประจำตัวผู้เสียภาษี <span className="font-mono font-bold text-slate-950">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขาที่ ${company.branchNo || '-'}`}) โทร: <strong className="text-slate-950">{company.phone || '-'}</strong>
           </p>
 
-          <div className="mt-3 inline-block border-2 border-slate-900 px-6 py-1">
-            <h2 className="text-lg font-extrabold">{typeInfo.titleTh}</h2>
-            <div className="text-xs font-semibold">{typeInfo.titleEn}</div>
+          <div className="mt-2.5 inline-block border-2 border-slate-900 px-6 py-1 bg-slate-50">
+            <h2 className="text-xl sm:text-2xl font-black tracking-wide text-slate-950">{typeInfo.titleTh}</h2>
+            <div className="text-xs font-bold uppercase tracking-wider text-slate-600">{typeInfo.titleEn}</div>
           </div>
         </div>
 
         {/* Info Grid with classic borders */}
-        <div className="grid grid-cols-2 gap-0 border border-slate-400 text-xs mb-4">
-          <div className="p-2.5 border-r border-slate-400 space-y-1">
-            <div className="font-bold">ลูกค้า: {customer.name || '-'}</div>
-            {customer.contactPerson && <div>ผู้ติดต่อ: {customer.contactPerson}</div>}
-            <div>ที่อยู่: {customer.address || '-'}</div>
-            <div>เลขประจำตัวผู้เสียภาษี: <span className="font-mono font-bold">{customer.taxId || '-'}</span></div>
-            <div>สาขา: {customer.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขาที่ ${customer.branchNo || '-'}`}</div>
+        <div className="grid grid-cols-2 gap-0 border-2 border-slate-900 text-xs mb-3.5">
+          <div className="p-2.5 border-r-2 border-slate-900 space-y-0.5">
+            <div className="font-bold text-sm text-slate-950">ลูกค้า: {customer.name || '-'}</div>
+            {customer.contactPerson && <div className="text-slate-800 font-medium">ผู้ติดต่อ: {customer.contactPerson}</div>}
+            <div className="text-slate-700">ที่อยู่: {customer.address || '-'}</div>
+            <div className="text-slate-800">เลขประจำตัวผู้เสียภาษี: <span className="font-mono font-bold text-slate-950">{customer.taxId || '-'}</span></div>
+            <div className="text-slate-800">สาขา: {customer.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขาที่ ${customer.branchNo || '-'}`}</div>
           </div>
 
-          <div className="p-2.5 space-y-1 bg-slate-50/50">
-            <div className="flex justify-between">
-              <span className="font-bold">เลขที่เอกสาร:</span>
-              <span className="font-mono font-bold text-sm">{document.documentNumber}</span>
+          <div className="p-2.5 space-y-1 bg-slate-50/70">
+            <div className="flex justify-between items-center">
+              <span className="font-bold text-slate-700">เลขที่เอกสาร:</span>
+              <span className="font-mono font-bold text-slate-950 text-sm">{document.documentNumber}</span>
             </div>
-            <div className="flex justify-between">
-              <span>วันที่:</span>
-              <span>{document.issueDate}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-slate-700">วันที่:</span>
+              <span className="font-semibold text-slate-900">{document.issueDate}</span>
             </div>
             {document.dueDate && (
-              <div className="flex justify-between">
-                <span>วันครบกำหนด:</span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-700">วันครบกำหนด:</span>
                 <span className="font-bold text-rose-700">{document.dueDate}</span>
               </div>
             )}
             {document.referenceNumber && (
-              <div className="flex justify-between">
-                <span>อ้างอิง:</span>
-                <span className="font-mono">{document.referenceNumber}</span>
+              <div className="flex justify-between items-center border-t border-slate-300 pt-0.5">
+                <span className="text-slate-700">อ้างอิง:</span>
+                <span className="font-mono font-medium text-slate-800">{document.referenceNumber}</span>
               </div>
             )}
             {document.paymentTerms && (
-              <div className="flex justify-between">
-                <span>เงื่อนไข:</span>
-                <span>{document.paymentTerms}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-700">เงื่อนไข:</span>
+                <span className="font-medium text-slate-800">{document.paymentTerms}</span>
               </div>
             )}
           </div>

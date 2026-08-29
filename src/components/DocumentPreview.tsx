@@ -28,6 +28,7 @@ import {
   FileDown,
   Loader2,
   AlertCircle,
+  ChevronDown,
 } from 'lucide-react';
 
 interface DocumentPreviewProps {
@@ -55,6 +56,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
   const [pdfStatusText, setPdfStatusText] = useState<string>('');
   const [isPrinting, setIsPrinting] = useState<boolean>(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [showActionMenu, setShowActionMenu] = useState<boolean>(false);
 
   const typeInfo = getDocumentTypeInfo(document.type);
   const statusInfo = getStatusInfo(document.status);
@@ -318,35 +320,109 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               </button>
             )}
 
-            {/* Direct PDF Download Button */}
-            <button
-              onClick={handleExportPdf}
-              disabled={isExportingPdf}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
-              title="ดาวน์โหลดเป็นไฟล์ PDF ขนาด A4 โดยตรง"
-            >
-              {isExportingPdf ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <FileDown className="w-3.5 h-3.5" />
-              )}
-              <span>{isExportingPdf ? 'กำลังสร้าง PDF...' : 'บันทึก PDF'}</span>
-            </button>
+            {/* Consolidated Print / Save PDF Primary Action */}
+            <div className="relative inline-flex items-stretch rounded-lg shadow-xs">
+              <button
+                type="button"
+                onClick={handleDirectPrint}
+                disabled={isPrinting || isExportingPdf}
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-l-lg text-xs font-semibold transition-all cursor-pointer border-r border-indigo-500/60"
+                title="พิมพ์เอกสารขนาด A4 หรือบันทึกเป็น PDF"
+              >
+                {isPrinting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Printer className="w-4 h-4" />
+                )}
+                <span>{isPrinting ? 'กำลังเตรียมพิมพ์...' : 'พิมพ์เอกสาร / บันทึก PDF'}</span>
+              </button>
 
-            {/* Isolated Direct Print Button */}
-            <button
-              onClick={handleDirectPrint}
-              disabled={isPrinting}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white rounded-lg text-xs font-semibold shadow-xs transition-all cursor-pointer"
-              title="พิมพ์เอกสารขนาด A4 (ไม่มีส่วนเกินของเบราว์เซอร์)"
-            >
-              {isPrinting ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              ) : (
-                <Printer className="w-4 h-4" />
+              <button
+                type="button"
+                onClick={() => setShowActionMenu((prev) => !prev)}
+                className="px-2 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-r-lg text-xs transition-colors cursor-pointer flex items-center justify-center"
+                title="ตัวเลือกเพิ่มเติม"
+              >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showActionMenu ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Action Dropdown Menu */}
+              {showActionMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowActionMenu(false)}
+                  />
+                  <div className="absolute right-0 top-full mt-1.5 w-60 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in slide-in-from-top-1 text-slate-800 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowActionMenu(false);
+                        handleDirectPrint();
+                      }}
+                      className="w-full px-3.5 py-2 text-left hover:bg-indigo-50 text-slate-800 flex items-center gap-2.5 font-medium cursor-pointer"
+                    >
+                      <Printer className="w-4 h-4 text-indigo-600" />
+                      <div>
+                        <div className="font-semibold text-slate-900">พิมพ์เอกสาร (Print A4)</div>
+                        <div className="text-[10px] text-slate-500">เปิดหน้าต่างพิมพ์หรือบันทึก PDF</div>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowActionMenu(false);
+                        handleExportPdf();
+                      }}
+                      disabled={isExportingPdf}
+                      className="w-full px-3.5 py-2 text-left hover:bg-rose-50 text-slate-800 flex items-center gap-2.5 font-medium cursor-pointer border-t border-slate-100"
+                    >
+                      <FileDown className="w-4 h-4 text-rose-600" />
+                      <div>
+                        <div className="font-semibold text-slate-900">ดาวน์โหลด PDF โดยตรง</div>
+                        <div className="text-[10px] text-slate-500">บันทึกเป็นไฟล์ .pdf ทันที</div>
+                      </div>
+                    </button>
+
+                    {document.showPromptPayQR && promptPayTarget && (
+                      <>
+                        <div className="border-t border-slate-100 my-1" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowActionMenu(false);
+                            handleDownloadQr();
+                          }}
+                          className="w-full px-3.5 py-2 text-left hover:bg-blue-50 text-slate-800 flex items-center gap-2.5 font-medium cursor-pointer"
+                        >
+                          <Download className="w-4 h-4 text-blue-600" />
+                          <div>
+                            <div className="font-semibold text-slate-900">บันทึกรูป QR พร้อมเพย์</div>
+                            <div className="text-[10px] text-slate-500">ดาวน์โหลดภาพ QR Code (.png)</div>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowActionMenu(false);
+                            handleCopyPromptPay();
+                          }}
+                          className="w-full px-3.5 py-2 text-left hover:bg-emerald-50 text-slate-800 flex items-center gap-2.5 font-medium cursor-pointer"
+                        >
+                          {copiedPromptPay ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-emerald-600" />}
+                          <div>
+                            <div className="font-semibold text-slate-900">คัดลอกเบอร์พร้อมเพย์</div>
+                            <div className="text-[10px] text-slate-500">{formatPromptPayId(promptPayTarget)}</div>
+                          </div>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </>
               )}
-              <span>พิมพ์เอกสาร</span>
-            </button>
+            </div>
           </div>
         </div>
       </div>

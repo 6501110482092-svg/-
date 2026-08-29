@@ -19,65 +19,65 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
     <div className="bg-white p-5 sm:p-7 font-['Sarabun',sans-serif] text-slate-800 text-xs leading-relaxed max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[285mm] print:min-h-0 print:p-3 print:m-0 print:max-w-full flex flex-col justify-between border-t-8 border-slate-800">
       <div>
         {/* Header Block */}
-        <div className="flex justify-between items-start pb-3 border-b border-slate-300 mb-3">
+        <div className="flex justify-between items-start pb-3 border-b-2 border-slate-800 mb-3">
           <div className="w-3/5 pr-3">
             <div className="flex items-center gap-2.5 mb-1.5">
               {company.logoUrl && (
                 <img
                   src={company.logoUrl}
                   alt="Company Logo"
-                  className="h-10 w-auto max-w-[110px] object-contain"
+                  className="h-12 w-auto max-w-[120px] object-contain shrink-0"
                 />
               )}
               <div>
-                <h1 className="font-bold text-base text-slate-950 uppercase tracking-wide">
+                <h1 className="font-bold text-base sm:text-lg text-slate-950 uppercase tracking-wide leading-snug">
                   {company.name || 'ชื่อสถานประกอบการ'}
                 </h1>
                 {company.nameEn && (
-                  <p className="text-[11px] text-slate-500">{company.nameEn}</p>
+                  <p className="text-xs text-slate-600 font-medium">{company.nameEn}</p>
                 )}
               </div>
             </div>
-            <div className="text-[11px] text-slate-600 space-y-0.5">
+            <div className="text-xs text-slate-700 space-y-0.5">
               <p>{company.address || '-'}</p>
-              <p className="text-slate-700 font-medium">
-                เลขประจำตัวผู้เสียภาษี: <span className="font-mono font-bold text-slate-900">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขา ${company.branchNo || '-'}`})
+              <p className="text-slate-800 font-medium">
+                เลขประจำตัวผู้เสียภาษี: <span className="font-mono font-bold text-slate-950">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขา ${company.branchNo || '-'}`})
               </p>
-              <p className="text-[10px] text-slate-500">
-                โทร: {company.phone || '-'} | อีเมล: {company.email || '-'}
+              <p className="text-xs text-slate-600">
+                โทร: <strong className="font-medium text-slate-900">{company.phone || '-'}</strong> | อีเมล: <strong className="font-medium text-slate-900">{company.email || '-'}</strong>
               </p>
             </div>
           </div>
 
-          <div className="w-2/5 text-right pl-3 border-l border-slate-200">
-            <div className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
+          <div className="w-2/5 text-right pl-3 border-l border-slate-300">
+            <div className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight leading-tight">
               {typeInfo.titleTh}
             </div>
-            <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+            <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">
               {typeInfo.titleEn}
             </div>
-            <div className="text-[9px] bg-slate-100 text-slate-700 inline-block px-1.5 py-0.2 rounded font-medium mb-1">
+            <div className="text-[10px] bg-slate-100 text-slate-800 inline-block px-2 py-0.5 rounded font-semibold border border-slate-200 mb-1.5">
               {typeInfo.subtitleTh}
             </div>
 
-            <div className="text-xs space-y-0.5 text-slate-700">
-              <div>
-                <span className="text-slate-500 text-[10px]">เลขที่ / No: </span>
-                <span className="font-bold font-mono text-slate-900 text-xs sm:text-sm">{document.documentNumber}</span>
+            <div className="text-xs space-y-0.5 text-slate-800">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600 text-xs">เลขที่ / No: </span>
+                <span className="font-bold font-mono text-slate-950 text-sm">{document.documentNumber}</span>
               </div>
-              <div>
-                <span className="text-slate-500 text-[10px]">วันที่ / Date: </span>
-                <span className="font-medium text-xs">{document.issueDate}</span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600 text-xs">วันที่ / Date: </span>
+                <span className="font-semibold text-xs">{document.issueDate}</span>
               </div>
               {document.dueDate && (
-                <div>
-                  <span className="text-slate-500 text-[10px]">ครบกำหนด: </span>
-                  <span className="font-semibold text-rose-700 text-xs">{document.dueDate}</span>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-600 text-xs">ครบกำหนด: </span>
+                  <span className="font-bold text-rose-700 text-xs">{document.dueDate}</span>
                 </div>
               )}
               {document.referenceNumber && (
-                <div>
-                  <span className="text-slate-500 text-[10px]">อ้างอิง / Ref: </span>
+                <div className="flex justify-between items-center border-t border-slate-200 pt-0.5">
+                  <span className="text-slate-600 text-xs">อ้างอิง / Ref: </span>
                   <span className="font-mono text-xs">{document.referenceNumber}</span>
                 </div>
               )}
@@ -86,32 +86,32 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
         </div>
 
         {/* Customer Info Box */}
-        <div className="border border-slate-300 rounded p-3 mb-4 text-xs bg-slate-50/40">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="font-bold text-slate-900 block mb-1">
+        <div className="border border-slate-300 rounded-lg p-3 mb-3.5 text-xs bg-slate-50/60">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-0.5">
+              <span className="font-bold text-slate-950 text-sm block">
                 ชื่อลูกค้า / Customer: {customer.name || '-'}
               </span>
               {customer.contactPerson && (
-                <div className="text-slate-700">ผู้ติดต่อ: {customer.contactPerson}</div>
+                <div className="text-slate-800 font-medium text-xs">ผู้ติดต่อ: {customer.contactPerson}</div>
               )}
-              <div className="text-slate-600 mt-1">ที่อยู่: {customer.address || '-'}</div>
+              <div className="text-slate-700 text-xs leading-normal">ที่อยู่: {customer.address || '-'}</div>
             </div>
-            <div className="space-y-1 text-right sm:text-left">
-              <div>
-                <span className="text-slate-500">เลขประจำตัวผู้เสียภาษี: </span>
-                <span className="font-mono font-bold">{customer.taxId || '-'}</span>
+            <div className="space-y-0.5 text-left sm:pl-3 sm:border-l border-slate-200">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">เลขประจำตัวผู้เสียภาษี: </span>
+                <span className="font-mono font-bold text-slate-950 text-xs sm:text-sm">{customer.taxId || '-'}</span>
               </div>
-              <div>
-                <span className="text-slate-500">สาขา: </span>
-                <span>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-600">สาขา: </span>
+                <span className="font-medium text-slate-800">
                   {customer.branchType === 'headquarters'
                     ? 'สำนักงานใหญ่ (00000)'
                     : `สาขาที่ ${customer.branchNo || '-'}`}
                 </span>
               </div>
-              <div className="text-[11px] text-slate-500">
-                โทร: {customer.phone || '-'} | อีเมล: {customer.email || '-'}
+              <div className="text-xs text-slate-700 pt-0.5">
+                โทร: <strong className="font-medium text-slate-900">{customer.phone || '-'}</strong> | อีเมล: <strong className="font-medium text-slate-900">{customer.email || '-'}</strong>
               </div>
             </div>
           </div>

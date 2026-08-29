@@ -18,46 +18,47 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
     <div className="bg-white p-6 sm:p-8 md:p-10 font-['Sarabun',sans-serif] text-slate-700 text-xs leading-relaxed max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[297mm] print:min-h-0 print:p-4 print:m-0 print:max-w-full flex flex-col justify-between">
       <div>
         {/* Minimal Header */}
-        <div className="flex justify-between items-start mb-8">
+        <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-200">
           <div>
             {company.logoUrl ? (
-              <img src={company.logoUrl} alt="Logo" className="h-10 w-auto mb-2" />
+              <img src={company.logoUrl} alt="Logo" className="h-10 w-auto mb-1.5" />
             ) : null}
-            <h1 className="font-bold text-base text-slate-900">{company.name || 'ชื่อสถานประกอบการ'}</h1>
-            <p className="text-slate-500 max-w-sm mt-0.5">{company.address || '-'}</p>
-            <p className="text-slate-500 text-[11px] mt-1">
-              Tax ID: <span className="font-mono text-slate-700 font-bold">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'Head Office' : `Branch ${company.branchNo || '-'}`})
+            <h1 className="font-bold text-base sm:text-lg text-slate-950">{company.name || 'ชื่อสถานประกอบการ'}</h1>
+            {company.nameEn && <p className="text-xs text-slate-500 font-medium">{company.nameEn}</p>}
+            <p className="text-slate-600 text-xs max-w-sm mt-0.5">{company.address || '-'}</p>
+            <p className="text-slate-700 text-xs mt-0.5">
+              เลขผู้เสียภาษี: <span className="font-mono text-slate-950 font-bold">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขา ${company.branchNo || '-'}`})
             </p>
           </div>
 
           <div className="text-right">
-            <div className="text-xl font-light tracking-wide text-slate-900 mb-1">
+            <div className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950 mb-0.5">
               {typeInfo.titleTh}
             </div>
-            <div className="text-[11px] font-mono font-medium text-slate-500 uppercase tracking-widest">
+            <div className="text-xs font-mono font-bold text-slate-500 uppercase tracking-widest">
               {typeInfo.titleEn}
             </div>
-            <div className="mt-3 text-slate-600 space-y-0.5">
-              <div><span className="text-slate-400">เลขที่:</span> <span className="font-mono font-bold text-slate-900">{document.documentNumber}</span></div>
-              <div><span className="text-slate-400">วันที่:</span> {document.issueDate}</div>
-              {document.dueDate && <div><span className="text-slate-400">ครบกำหนด:</span> <span className="text-rose-600 font-medium">{document.dueDate}</span></div>}
+            <div className="mt-2 text-slate-700 text-xs space-y-0.5 bg-slate-50 p-2 rounded-lg border border-slate-200 text-left">
+              <div className="flex justify-between gap-3"><span className="text-slate-500">เลขที่:</span> <span className="font-mono font-bold text-slate-950">{document.documentNumber}</span></div>
+              <div className="flex justify-between gap-3"><span className="text-slate-500">วันที่:</span> <span className="font-semibold text-slate-900">{document.issueDate}</span></div>
+              {document.dueDate && <div className="flex justify-between gap-3"><span className="text-slate-500">ครบกำหนด:</span> <span className="text-rose-700 font-bold">{document.dueDate}</span></div>}
             </div>
           </div>
         </div>
 
         {/* Bill To */}
-        <div className="mb-6 pb-4 border-b border-slate-100 grid grid-cols-2 gap-4">
+        <div className="mb-4 pb-3 border-b border-slate-200 grid grid-cols-2 gap-3 text-xs">
           <div>
-            <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">ลูกค้า / Bill To</div>
-            <div className="font-bold text-slate-900 text-sm">{customer.name || '-'}</div>
-            {customer.contactPerson && <div className="text-slate-600">{customer.contactPerson}</div>}
-            <div className="text-slate-500 mt-1">{customer.address || '-'}</div>
+            <div className="text-xs uppercase font-bold text-slate-500 tracking-wider mb-0.5">ลูกค้า / Bill To</div>
+            <div className="font-bold text-slate-950 text-sm sm:text-base">{customer.name || '-'}</div>
+            {customer.contactPerson && <div className="text-slate-800 font-medium text-xs">ผู้ติดต่อ: {customer.contactPerson}</div>}
+            <div className="text-slate-700 text-xs mt-0.5">{customer.address || '-'}</div>
           </div>
-          <div className="text-right sm:text-left sm:pl-8 space-y-1">
-            <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1">ข้อมูลภาษี / Tax Details</div>
-            <div>Tax ID: <span className="font-mono font-bold text-slate-800">{customer.taxId || '-'}</span></div>
-            <div>สาขา: {customer.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขา ${customer.branchNo || '-'}`}</div>
-            {customer.phone && <div className="text-slate-500">โทร: {customer.phone}</div>}
+          <div className="text-right sm:text-left sm:pl-6 space-y-0.5">
+            <div className="text-xs uppercase font-bold text-slate-500 tracking-wider mb-0.5">ข้อมูลภาษี / Tax Details</div>
+            <div>เลขผู้เสียภาษี: <span className="font-mono font-bold text-slate-950 text-xs sm:text-sm">{customer.taxId || '-'}</span></div>
+            <div>สาขา: <span className="text-slate-800">{customer.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขา ${customer.branchNo || '-'}`}</span></div>
+            {customer.phone && <div className="text-slate-700">โทร: <strong className="text-slate-900">{customer.phone}</strong></div>}
           </div>
         </div>
 
