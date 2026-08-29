@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CompanyInfo, BankAccount } from '../types';
 import { SignaturePadModal } from './SignaturePadModal';
+import { compressImageFile } from '../utils/storage';
 import {
   generateQRCodeDataUrl,
   formatPromptPayId,
@@ -64,47 +65,51 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, logoUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImageFile(file, 600, 600, 0.85);
+        setFormData((prev) => ({ ...prev, logoUrl: compressed }));
+      } catch (err) {
+        console.error('Error compressing logo:', err);
+      }
     }
   };
 
-  const handleStampUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleStampUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, stampUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImageFile(file, 500, 500, 0.85);
+        setFormData((prev) => ({ ...prev, stampUrl: compressed }));
+      } catch (err) {
+        console.error('Error compressing stamp:', err);
+      }
     }
   };
 
-  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, signatureUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImageFile(file, 600, 300, 0.85);
+        setFormData((prev) => ({ ...prev, signatureUrl: compressed }));
+      } catch (err) {
+        console.error('Error compressing signature:', err);
+      }
     }
   };
 
-  const handleQrCodeUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleQrCodeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, qrCodeUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImageFile(file, 500, 500, 0.85);
+        setFormData((prev) => ({ ...prev, qrCodeUrl: compressed }));
+      } catch (err) {
+        console.error('Error compressing QR:', err);
+      }
     }
   };
 

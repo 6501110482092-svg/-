@@ -18,6 +18,7 @@ import {
   initialProductCatalog,
   createSampleDocuments,
 } from './utils/sampleData';
+import { safeGetLocal, getStoredItem, setStoredItem } from './utils/storage';
 import { Navbar } from './components/Navbar';
 import { DashboardStats } from './components/DashboardStats';
 import { DocumentList } from './components/DocumentList';
@@ -30,70 +31,64 @@ import { ConvertDocumentModal } from './components/ConvertDocumentModal';
 import { ConfirmModal } from './components/ConfirmModal';
 
 export default function App() {
-  // Persistence with LocalStorage
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(() => {
-    const saved = localStorage.getItem('thai_docflow_company');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return initialCompanyInfo;
-  });
+  // Persistence with Safe IndexedDB + LocalStorage
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(() =>
+    safeGetLocal('thai_docflow_company', initialCompanyInfo)
+  );
 
-  const [customers, setCustomers] = useState<CustomerInfo[]>(() => {
-    const saved = localStorage.getItem('thai_docflow_customers');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return initialCustomers;
-  });
+  const [customers, setCustomers] = useState<CustomerInfo[]>(() =>
+    safeGetLocal('thai_docflow_customers', initialCustomers)
+  );
 
-  const [products, setProducts] = useState<ProductCatalogItem[]>(() => {
-    const saved = localStorage.getItem('thai_docflow_products');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return initialProductCatalog;
-  });
+  const [products, setProducts] = useState<ProductCatalogItem[]>(() =>
+    safeGetLocal('thai_docflow_products', initialProductCatalog)
+  );
 
-  const [documents, setDocuments] = useState<DocumentModel[]>(() => {
-    const saved = localStorage.getItem('thai_docflow_documents');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return createSampleDocuments();
-  });
+  const [documents, setDocuments] = useState<DocumentModel[]>(() =>
+    safeGetLocal('thai_docflow_documents', createSampleDocuments())
+  );
 
-  // Save to LocalStorage on changes
+  // Load from IndexedDB on startup (supports large storage for logos & signatures)
   useEffect(() => {
-    localStorage.setItem('thai_docflow_company', JSON.stringify(companyInfo));
+    let isMounted = true;
+    (async () => {
+      try {
+        const [savedCompany, savedCustomers, savedProducts, savedDocs] = await Promise.all([
+          getStoredItem('thai_docflow_company', companyInfo),
+          getStoredItem('thai_docflow_customers', customers),
+          getStoredItem('thai_docflow_products', products),
+          getStoredItem('thai_docflow_documents', documents),
+        ]);
+        if (isMounted) {
+          if (savedCompany) setCompanyInfo(savedCompany);
+          if (savedCustomers) setCustomers(savedCustomers);
+          if (savedProducts) setProducts(savedProducts);
+          if (savedDocs && Array.isArray(savedDocs)) setDocuments(savedDocs);
+        }
+      } catch (err) {
+        console.warn('Error hydrating from persistent storage:', err);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Save to Safe Storage on changes without throwing QuotaExceededError
+  useEffect(() => {
+    setStoredItem('thai_docflow_company', companyInfo).catch(console.error);
   }, [companyInfo]);
 
   useEffect(() => {
-    localStorage.setItem('thai_docflow_customers', JSON.stringify(customers));
+    setStoredItem('thai_docflow_customers', customers).catch(console.error);
   }, [customers]);
 
   useEffect(() => {
-    localStorage.setItem('thai_docflow_products', JSON.stringify(products));
+    setStoredItem('thai_docflow_products', products).catch(console.error);
   }, [products]);
 
   useEffect(() => {
-    localStorage.setItem('thai_docflow_documents', JSON.stringify(documents));
+    setStoredItem('thai_docflow_documents', documents).catch(console.error);
   }, [documents]);
 
   // Views & Active State
@@ -108,7 +103,6 @@ export default function App() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [convertDoc, setConvertDoc] = useState<DocumentModel | null>(null);
   const [deleteTargetDoc, setDeleteTargetDoc] = useState<DocumentModel | null>(null);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   // Auto hide toast after 3s
@@ -277,20 +271,6 @@ export default function App() {
     }
   };
 
-  const handleResetSampleData = () => {
-    setShowResetConfirm(true);
-  };
-
-  const handleConfirmResetData = () => {
-    setCompanyInfo(initialCompanyInfo);
-    setCustomers(initialCustomers);
-    setProducts(initialProductCatalog);
-    setDocuments(createSampleDocuments());
-    setViewMode('list');
-    setShowResetConfirm(false);
-    setToastMessage({ text: 'รีเซ็ตเป็นข้อมูลตัวอย่างเริ่มต้นสำเร็จ', type: 'success' });
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-['Prompt',sans-serif] flex flex-col">
       {/* Top Navigation */}
@@ -300,7 +280,6 @@ export default function App() {
         onOpenCustomers={() => setShowCustomerModal(true)}
         onOpenProducts={() => setShowProductModal(true)}
         onCreateNewDoc={handleStartCreateNew}
-        onResetSampleData={handleResetSampleData}
       />
 
       {/* Main View Router */}
@@ -424,18 +403,6 @@ export default function App() {
         type="danger"
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteTargetDoc(null)}
-      />
-
-      {/* Reset Demo Data Confirmation Modal */}
-      <ConfirmModal
-        isOpen={showResetConfirm}
-        title="รีเซ็ตเป็นข้อมูลตัวอย่างเริ่มต้น"
-        message="คุณต้องการล้างข้อมูลปัจจุบันและโหลดข้อมูลตัวอย่างเริ่มต้น (ใบเสนอราคา, ใบวางบิล, ข้อมูลบริษัทตัวอย่าง) ใช่หรือไม่?"
-        confirmText="ยืนยันรีเซ็ตข้อมูล"
-        cancelText="ยกเลิก"
-        type="warning"
-        onConfirm={handleConfirmResetData}
-        onCancel={() => setShowResetConfirm(false)}
       />
 
       {/* Toast Notification */}

@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -35,15 +35,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
     window.location.reload();
   };
 
-  private handleClearAndReload = () => {
-    localStorage.removeItem('thai_docflow_documents');
-    localStorage.removeItem('thai_docflow_company');
-    localStorage.removeItem('thai_docflow_customers');
-    localStorage.removeItem('thai_docflow_products');
-    this.setState({ hasError: false, error: null, errorInfo: null });
-    window.location.reload();
-  };
-
   public render() {
     if (this.state.hasError) {
       return (
@@ -54,9 +45,9 @@ export class ErrorBoundary extends React.Component<Props, State> {
             </div>
 
             <div>
-              <h2 className="text-lg font-bold text-slate-900">เกิดข้อผิดพลาดในการแสดงผล</h2>
+              <h2 className="text-lg font-bold text-slate-900">เกิดข้อผิดพลาดในการทำงาน</h2>
               <p className="text-xs text-slate-500 mt-1">
-                ระบบตรวจพบข้อผิดพลาด กรุณากดปุ่มด้านล่างเพื่อกลับสู่การทำงานปกติ
+                ระบบพบข้อผิดพลาด กรุณากดปุ่มด้านล่างเพื่อโหลดหน้าใหม่และทำงานต่อ
               </p>
               {this.state.error && (
                 <div className="mt-3 p-3 bg-slate-100 rounded-lg text-left text-[11px] font-mono text-slate-700 max-h-32 overflow-auto break-all">
@@ -65,22 +56,14 @@ export class ErrorBoundary extends React.Component<Props, State> {
               )}
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2 justify-center pt-2">
+            <div className="flex gap-2 justify-center pt-2">
               <button
                 type="button"
                 onClick={this.handleReset}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>โหลดหน้าใหม่ (Reload)</span>
-              </button>
-              <button
-                type="button"
-                onClick={this.handleClearAndReload}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors"
-              >
-                <Home className="w-4 h-4" />
-                <span>รีเซ็ตข้อมูลตัวอย่าง</span>
               </button>
             </div>
           </div>

@@ -8,7 +8,6 @@ import {
   Building2,
   Plus,
   ChevronDown,
-  RotateCcw,
   Sparkles,
   Layers,
 } from 'lucide-react';
@@ -18,7 +17,6 @@ interface NavbarProps {
   onOpenCustomers: () => void;
   onOpenProducts: () => void;
   onCreateNewDoc: (type: DocumentType) => void;
-  onResetSampleData: () => void;
   companyName: string;
 }
 
@@ -27,7 +25,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCustomers,
   onOpenProducts,
   onCreateNewDoc,
-  onResetSampleData,
   companyName,
 }) => {
   const [showCreateDropdown, setShowCreateDropdown] = useState(false);
@@ -152,15 +149,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </>
               )}
             </div>
-
-            {/* Reset sample data */}
-            <button
-              onClick={onResetSampleData}
-              title="โหลดข้อมูลตัวอย่างใหม่"
-              className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-            >
-              <RotateCcw className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>

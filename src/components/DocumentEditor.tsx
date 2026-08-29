@@ -15,6 +15,7 @@ import {
   generateDocumentNumber,
 } from '../utils/documentCalculations';
 import { formatCurrency } from '../utils/thaiBaht';
+import { compressImageFile } from '../utils/storage';
 import { CustomerModal } from './CustomerModal';
 import { ProductCatalogModal } from './ProductCatalogModal';
 import { SignaturePadModal } from './SignaturePadModal';
@@ -203,26 +204,28 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   const [showProductModal, setShowProductModal] = useState(false);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
 
-  const handleQrUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCustomQrCodeUrl(reader.result as string);
+      try {
+        const compressed = await compressImageFile(file, 500, 500, 0.85);
+        setCustomQrCodeUrl(compressed);
         setQrCodeSource('upload');
-      };
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error('Error compressing QR:', err);
+      }
     }
   };
 
-  const handleSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSignatureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setDocSignatureUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImageFile(file, 600, 300, 0.85);
+        setDocSignatureUrl(compressed);
+      } catch (err) {
+        console.error('Error compressing signature:', err);
+      }
     }
   };
 
