@@ -25,15 +25,15 @@ export const QuotationTemplate: React.FC<TemplateProps> = ({ document }) => {
         <div className="flex justify-between items-start border-b-2 border-indigo-700 pb-3.5 mb-3.5">
           {/* Company Brand & Info (Left) */}
           <div className="w-7/12 pr-4">
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex items-center gap-3.5 mb-2.5">
               {company.logoUrl ? (
                 <img
                   src={company.logoUrl}
                   alt="Company Logo"
-                  className="h-12 w-auto max-w-[130px] object-contain rounded shrink-0"
+                  className="h-16 max-h-20 w-auto max-w-[160px] object-contain rounded shrink-0"
                 />
               ) : (
-                <div className="w-11 h-11 bg-indigo-700 text-white rounded-lg flex items-center justify-center font-bold text-xl shadow-xs shrink-0">
+                <div className="w-14 h-14 bg-indigo-700 text-white rounded-xl flex items-center justify-center font-bold text-2xl shadow-xs shrink-0">
                   {(company.name || 'บ').charAt(0)}
                 </div>
               )}

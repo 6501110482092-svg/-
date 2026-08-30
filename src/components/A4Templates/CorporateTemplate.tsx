@@ -21,12 +21,12 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
         {/* Header Block */}
         <div className="flex justify-between items-start pb-3 border-b-2 border-slate-800 mb-3">
           <div className="w-3/5 pr-3">
-            <div className="flex items-center gap-2.5 mb-1.5">
+            <div className="flex items-center gap-3 mb-2">
               {company.logoUrl && (
                 <img
                   src={company.logoUrl}
                   alt="Company Logo"
-                  className="h-12 w-auto max-w-[120px] object-contain shrink-0"
+                  className="h-16 max-h-20 w-auto max-w-[150px] object-contain shrink-0"
                 />
               )}
               <div>

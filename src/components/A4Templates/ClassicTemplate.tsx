@@ -19,6 +19,13 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ document }) => {
       <div>
         {/* Header with Title Centered */}
         <div className="text-center pb-3 border-b-2 border-slate-900 mb-3.5">
+          {company.logoUrl && (
+            <img
+              src={company.logoUrl}
+              alt="Company Logo"
+              className="h-16 max-h-20 w-auto max-w-[160px] mx-auto object-contain mb-2"
+            />
+          )}
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950">{company.name || 'ชื่อสถานประกอบการ'}</h1>
           {company.nameEn && <p className="text-xs sm:text-sm font-medium text-slate-600 mt-0.5">{company.nameEn}</p>}
           <p className="text-xs sm:text-sm text-slate-700 mt-0.5">{company.address || '-'}</p>

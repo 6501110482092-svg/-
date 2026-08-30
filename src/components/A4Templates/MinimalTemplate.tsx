@@ -21,7 +21,7 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
         <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-200">
           <div>
             {company.logoUrl ? (
-              <img src={company.logoUrl} alt="Logo" className="h-10 w-auto mb-1.5" />
+              <img src={company.logoUrl} alt="Logo" className="h-14 max-h-18 w-auto max-w-[160px] object-contain mb-2" />
             ) : null}
             <h1 className="font-bold text-base sm:text-lg text-slate-950">{company.name || 'ชื่อสถานประกอบการ'}</h1>
             {company.nameEn && <p className="text-xs text-slate-500 font-medium">{company.nameEn}</p>}
