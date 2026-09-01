@@ -15,6 +15,8 @@ export const initialCompanyInfo: CompanyInfo = {
   signatureName: 'นายสมชาย รุ่งเรืองทรัพย์',
   signaturePosition: 'กรรมการผู้จัดการ (Managing Director)',
   promptPayId: '0105561089123',
+  showPaymentSlipNotice: true,
+  paymentSlipNotice: 'โอนเงินแล้ว กรุณาส่งสลิปหลักฐานการชำระเงินที่ 02-714-8999 หรือ contact@siamcloud.co.th',
   bankAccounts: [
     {
       id: 'bank-1',

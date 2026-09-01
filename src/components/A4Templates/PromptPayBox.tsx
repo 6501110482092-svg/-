@@ -135,10 +135,23 @@ export const PromptPayBox: React.FC<PromptPayBoxProps> = ({ document, accentColo
             </div>
           </div>
 
-          <div className="text-[10px] text-slate-500 flex items-center gap-1 pt-0.5 border-t border-slate-200/60">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
-            <span>โอนเงินแล้ว กรุณาส่งสลิปหลักฐานการชำระเงินที่ {company.email || company.phone || '-'}</span>
-          </div>
+          {/* Slip notification notice (configurable in Company Profile) */}
+          {company.showPaymentSlipNotice !== false && (
+            (() => {
+              const noticeText = company.paymentSlipNotice !== undefined
+                ? company.paymentSlipNotice.trim()
+                : (company.email || company.phone ? `โอนเงินแล้ว กรุณาส่งสลิปหลักฐานการชำระเงินที่ ${company.email || company.phone}` : '');
+
+              if (!noticeText) return null;
+
+              return (
+                <div className="text-[10px] text-slate-500 flex items-center gap-1 pt-0.5 border-t border-slate-200/60">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                  <span>{noticeText}</span>
+                </div>
+              );
+            })()
+          )}
         </div>
       )}
     </div>

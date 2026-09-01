@@ -29,6 +29,8 @@ export interface CompanyInfo {
   promptPayName?: string; // PromptPay Account Name
   promptPayType?: 'phone' | 'taxId' | 'citizenId' | 'eWallet';
   bankAccounts: BankAccount[];
+  showPaymentSlipNotice?: boolean; // Toggle display of payment slip instruction
+  paymentSlipNotice?: string; // Custom instruction text for submitting payment slip
 }
 
 export interface BankAccount {

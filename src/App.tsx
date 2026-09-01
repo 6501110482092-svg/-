@@ -356,7 +356,21 @@ export default function App() {
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}
         companyInfo={companyInfo}
-        onSave={(info) => setCompanyInfo(info)}
+        onSave={(info) => {
+          setCompanyInfo(info);
+          setDocuments((prev) =>
+            prev.map((d) => ({
+              ...d,
+              company: {
+                ...d.company,
+                ...info,
+                signatureUrl: d.company.signatureUrl || info.signatureUrl,
+                stampUrl: d.company.stampUrl || info.stampUrl,
+              },
+            }))
+          );
+          setToastMessage({ text: 'บันทึกข้อมูลกิจการเรียบร้อยแล้ว', type: 'success' });
+        }}
       />
 
       <CustomerModal
