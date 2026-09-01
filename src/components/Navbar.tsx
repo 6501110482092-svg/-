@@ -122,7 +122,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       }}
                       className="w-full px-4 py-2 text-left hover:bg-sky-50 flex items-center justify-between text-slate-800"
                     >
-                      <div className="font-semibold">ใบวางบิล / ส่งของ</div>
+                      <div className="font-semibold">ใบวางบิล / แจ้งหนี้</div>
                       <span className="text-[10px] bg-sky-100 text-sky-800 font-mono px-1.5 py-0.2 rounded font-bold">BN</span>
                     </button>
                     <button

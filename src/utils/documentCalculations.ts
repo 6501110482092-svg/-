@@ -94,12 +94,12 @@ export function getDocumentTypeInfo(type: DocumentType) {
     case 'billing':
       return {
         prefix: 'BN',
-        titleTh: 'ใบวางบิล / ใบส่งของ',
-        titleEn: 'BILLING NOTE / DELIVERY ORDER',
+        titleTh: 'ใบวางบิล / ใบแจ้งหนี้',
+        titleEn: 'BILLING NOTE / INVOICE',
         subtitleTh: 'ต้นฉบับ / Original',
         badgeColor: 'bg-sky-100 text-sky-800 border-sky-300',
         colorTheme: '#0284c7',
-        desc: 'เอกสารแจ้งส่งสินค้าหรือสรุปรายการหนี้เพื่อเรียกเก็บเงินตามรอบบิล',
+        desc: 'เอกสารสรุปรายการหนี้และแจ้งยอดเพื่อเรียกเก็บเงินตามรอบบิล',
       };
     case 'invoice':
       return {

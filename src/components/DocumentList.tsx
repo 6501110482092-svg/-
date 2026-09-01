@@ -129,7 +129,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                 : 'text-slate-600 hover:text-sky-800 hover:bg-sky-50'
             }`}
           >
-            <span>ใบวางบิล / ส่งของ (BN)</span>
+            <span>ใบวางบิล / แจ้งหนี้ (BN)</span>
             <span
               className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                 activeTab === 'billing' ? 'bg-sky-700 text-white' : 'bg-slate-200 text-slate-700'

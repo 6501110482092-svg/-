@@ -143,7 +143,7 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({ documents, onCre
             <span className="text-[10px] uppercase font-bold tracking-widest text-sky-100 block">
               BILLING NOTE
             </span>
-            <span className="font-bold text-sm block mt-0.5">ออกใบวางบิล / ส่งของ</span>
+            <span className="font-bold text-sm block mt-0.5">ออกใบวางบิล / แจ้งหนี้</span>
             <span className="text-[11px] text-sky-100 opacity-90">วางบิลตามรอบชำระเงิน</span>
           </div>
           <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
