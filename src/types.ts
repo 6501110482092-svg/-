@@ -9,6 +9,9 @@ export type TemplateStyle = 'modern' | 'quotation' | 'corporate' | 'classic' | '
 export type DocumentLanguage = 'th' | 'en' | 'bilingual';
 
 export interface CompanyInfo {
+  id?: string;
+  profileName?: string; // e.g. "สำนักงานใหญ่ (กรุงเทพฯ)", "สาขาเชียงใหม่"
+  isDefault?: boolean;
   name: string;
   nameEn?: string;
   taxId: string;
@@ -31,6 +34,9 @@ export interface CompanyInfo {
   bankAccounts: BankAccount[];
   showPaymentSlipNotice?: boolean; // Toggle display of payment slip instruction
   paymentSlipNotice?: string; // Custom instruction text for submitting payment slip
+  defaultRemarks?: string; // Default remarks/notes for documents issued by this branch
+  defaultTerms?: string; // Default terms & conditions for documents issued by this branch
+  defaultPaymentTerms?: string; // Default payment terms (optional, e.g. เครดิต 30 วัน)
 }
 
 export interface BankAccount {
@@ -77,7 +83,7 @@ export interface DocumentModel {
   documentNumber: string;
   referenceNumber?: string; // e.g. Reference to Quotation or Invoice
   issueDate: string; // YYYY-MM-DD
-  dueDate: string; // YYYY-MM-DD
+  dueDate?: string; // YYYY-MM-DD (optional, default empty/none)
   paymentTerms?: string; // e.g., '30 วัน', 'ชำระทันที', '7 วัน'
   
   company: CompanyInfo;

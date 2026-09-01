@@ -13,6 +13,7 @@ import {
   ProductCatalogItem,
 } from './types';
 import {
+  initialCompanies,
   initialCompanyInfo,
   initialCustomers,
   initialProductCatalog,
@@ -32,9 +33,29 @@ import { ConfirmModal } from './components/ConfirmModal';
 
 export default function App() {
   // Persistence with Safe IndexedDB + LocalStorage
-  const [companyInfo, setCompanyInfo] = useState<CompanyInfo>(() =>
-    safeGetLocal('thai_docflow_company', initialCompanyInfo)
-  );
+  const [companies, setCompanies] = useState<CompanyInfo[]>(() => {
+    const storedList = safeGetLocal('thai_docflow_companies', null);
+    if (storedList && Array.isArray(storedList) && storedList.length > 0) {
+      return storedList;
+    }
+    const legacySingle = safeGetLocal('thai_docflow_company', null);
+    if (legacySingle && legacySingle.name) {
+      return [
+        {
+          ...legacySingle,
+          id: legacySingle.id || 'company-hq',
+          profileName: legacySingle.profileName || 'สำนักงานใหญ่',
+          isDefault: true,
+        },
+      ];
+    }
+    return initialCompanies;
+  });
+
+  const [activeCompanyId, setActiveCompanyId] = useState<string>(() => {
+    const defaultComp = companies.find((c) => c.isDefault) || companies[0];
+    return defaultComp?.id || 'company-hq';
+  });
 
   const [customers, setCustomers] = useState<CustomerInfo[]>(() =>
     safeGetLocal('thai_docflow_customers', initialCustomers)
@@ -48,19 +69,28 @@ export default function App() {
     safeGetLocal('thai_docflow_documents', createSampleDocuments())
   );
 
+  // Active Company / Branch reference
+  const activeCompany =
+    companies.find((c) => c.id === activeCompanyId) ||
+    companies.find((c) => c.isDefault) ||
+    companies[0] ||
+    initialCompanyInfo;
+
   // Load from IndexedDB on startup (supports large storage for logos & signatures)
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const [savedCompany, savedCustomers, savedProducts, savedDocs] = await Promise.all([
-          getStoredItem('thai_docflow_company', companyInfo),
+        const [savedCompanies, savedCustomers, savedProducts, savedDocs] = await Promise.all([
+          getStoredItem('thai_docflow_companies', companies),
           getStoredItem('thai_docflow_customers', customers),
           getStoredItem('thai_docflow_products', products),
           getStoredItem('thai_docflow_documents', documents),
         ]);
         if (isMounted) {
-          if (savedCompany) setCompanyInfo(savedCompany);
+          if (savedCompanies && Array.isArray(savedCompanies) && savedCompanies.length > 0) {
+            setCompanies(savedCompanies);
+          }
           if (savedCustomers) setCustomers(savedCustomers);
           if (savedProducts) setProducts(savedProducts);
           if (savedDocs && Array.isArray(savedDocs)) setDocuments(savedDocs);
@@ -76,8 +106,8 @@ export default function App() {
 
   // Save to Safe Storage on changes without throwing QuotaExceededError
   useEffect(() => {
-    setStoredItem('thai_docflow_company', companyInfo).catch(console.error);
-  }, [companyInfo]);
+    setStoredItem('thai_docflow_companies', companies).catch(console.error);
+  }, [companies]);
 
   useEffect(() => {
     setStoredItem('thai_docflow_customers', customers).catch(console.error);
@@ -105,7 +135,7 @@ export default function App() {
   const [deleteTargetDoc, setDeleteTargetDoc] = useState<DocumentModel | null>(null);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
-  // Auto hide toast after 3s
+  // Auto hide toast after 3.5s
   useEffect(() => {
     if (toastMessage) {
       const timer = setTimeout(() => {
@@ -118,8 +148,8 @@ export default function App() {
   // Active document object
   const activeDocument = documents.find((d) => d.id === selectedDocId) || documents[0];
 
-  // Navigation handlers
-  const handleStartCreateNew = (type: DocumentType) => {
+  // Document Handlers
+  const handleStartCreateNew = (type: DocumentType = 'quotation') => {
     setEditingDoc(null);
     setNewDocType(type);
     setViewMode('editor');
@@ -135,41 +165,46 @@ export default function App() {
     setViewMode('preview');
   };
 
-  const handleSaveDocument = (doc: DocumentModel, viewImmediately: boolean = false) => {
+  const handleSaveDocument = (savedDoc: DocumentModel, viewImmediately = true) => {
     setDocuments((prev) => {
-      const idx = prev.findIndex((d) => d.id === doc.id);
-      if (idx >= 0) {
+      const existsIndex = prev.findIndex((d) => d.id === savedDoc.id);
+      if (existsIndex >= 0) {
         const updated = [...prev];
-        updated[idx] = doc;
+        updated[existsIndex] = savedDoc;
         return updated;
       }
-      return [doc, ...prev];
+      return [savedDoc, ...prev];
     });
 
-    setToastMessage({ text: `บันทึกเอกสาร ${doc.documentNumber} สำเร็จ`, type: 'success' });
+    setToastMessage({
+      text: `บันทึกเอกสาร ${savedDoc.documentNumber} เรียบร้อยแล้ว!`,
+      type: 'success',
+    });
 
     if (viewImmediately) {
-      setSelectedDocId(doc.id);
+      setSelectedDocId(savedDoc.id);
       setViewMode('preview');
     } else {
       setViewMode('list');
     }
   };
 
-  const handleUpdateStatus = (id: string, newStatus: DocumentStatus) => {
-    setDocuments((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, status: newStatus, updatedAt: new Date().toISOString() } : d))
-    );
-  };
-
   const handleUpdateDocument = (updatedDoc: DocumentModel) => {
     setDocuments((prev) => prev.map((d) => (d.id === updatedDoc.id ? updatedDoc : d)));
+    setToastMessage({ text: `อัปเดตเอกสาร ${updatedDoc.documentNumber} สำเร็จ`, type: 'success' });
+  };
+
+  const handleUpdateStatus = (id: string, status: DocumentStatus) => {
+    setDocuments((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, status, updatedAt: new Date().toISOString() } : d))
+    );
+    setToastMessage({ text: 'อัปเดตสถานะเอกสารสำเร็จ', type: 'success' });
   };
 
   const handleDeleteDocument = (id: string) => {
-    const doc = documents.find((d) => d.id === id);
-    if (doc) {
-      setDeleteTargetDoc(doc);
+    const docToDelete = documents.find((d) => d.id === id);
+    if (docToDelete) {
+      setDeleteTargetDoc(docToDelete);
     }
   };
 
@@ -196,6 +231,29 @@ export default function App() {
     };
     setDocuments((prev) => [newDoc, ...prev]);
     setToastMessage({ text: `คัดลอกเอกสาร ${doc.documentNumber} สำเร็จ`, type: 'success' });
+  };
+
+  // Company / Multi-Branch Management
+  const handleSaveCompanies = (updatedCompanies: CompanyInfo[], newActiveId?: string) => {
+    setCompanies(updatedCompanies);
+    if (newActiveId) {
+      setActiveCompanyId(newActiveId);
+    }
+    setToastMessage({
+      text: `บันทึกข้อมูลสาขา & กิจการ (${updatedCompanies.length} สาขา) สำเร็จ`,
+      type: 'success',
+    });
+  };
+
+  const handleSwitchActiveCompany = (compBranchId: string) => {
+    setActiveCompanyId(compBranchId);
+    const targetComp = companies.find((c) => c.id === compBranchId);
+    if (targetComp) {
+      setToastMessage({
+        text: `สลับไปใช้ "${targetComp.profileName || targetComp.name}" เรียบร้อยแล้ว`,
+        type: 'success',
+      });
+    }
   };
 
   // Customer Management
@@ -235,7 +293,9 @@ export default function App() {
   // Export / Backup
   const handleExportData = () => {
     const data = {
-      companyInfo,
+      companies,
+      activeCompanyId,
+      companyInfo: activeCompany,
       customers,
       products,
       documents,
@@ -258,7 +318,19 @@ export default function App() {
       reader.onload = (event) => {
         try {
           const parsed = JSON.parse(event.target?.result as string);
-          if (parsed.companyInfo) setCompanyInfo(parsed.companyInfo);
+          if (parsed.companies && Array.isArray(parsed.companies)) {
+            setCompanies(parsed.companies);
+            if (parsed.activeCompanyId) setActiveCompanyId(parsed.activeCompanyId);
+          } else if (parsed.companyInfo) {
+            setCompanies([
+              {
+                ...parsed.companyInfo,
+                id: parsed.companyInfo.id || 'company-hq',
+                profileName: parsed.companyInfo.profileName || 'สำนักงานใหญ่',
+                isDefault: true,
+              },
+            ]);
+          }
           if (parsed.customers) setCustomers(parsed.customers);
           if (parsed.products) setProducts(parsed.products);
           if (parsed.documents) setDocuments(parsed.documents);
@@ -275,7 +347,10 @@ export default function App() {
     <div className="min-h-screen bg-slate-50 text-slate-800 font-['Prompt',sans-serif] flex flex-col">
       {/* Top Navigation */}
       <Navbar
-        companyName={companyInfo.name}
+        companyName={activeCompany.name}
+        companies={companies}
+        activeCompany={activeCompany}
+        onSwitchActiveCompany={handleSwitchActiveCompany}
         onOpenCompanyProfile={() => setShowCompanyModal(true)}
         onOpenCustomers={() => setShowCustomerModal(true)}
         onOpenProducts={() => setShowProductModal(true)}
@@ -288,7 +363,8 @@ export default function App() {
           <DocumentEditor
             initialDocument={editingDoc}
             defaultType={newDocType}
-            companyInfo={companyInfo}
+            companies={companies}
+            companyInfo={activeCompany}
             customers={customers}
             products={products}
             existingDocsCount={documents.length}
@@ -298,6 +374,7 @@ export default function App() {
             onDeleteCustomer={handleDeleteCustomer}
             onSaveProduct={handleSaveProduct}
             onDeleteProduct={handleDeleteProduct}
+            onOpenCompanyModal={() => setShowCompanyModal(true)}
           />
         )}
 
@@ -355,22 +432,9 @@ export default function App() {
       <CompanyProfileModal
         isOpen={showCompanyModal}
         onClose={() => setShowCompanyModal(false)}
-        companyInfo={companyInfo}
-        onSave={(info) => {
-          setCompanyInfo(info);
-          setDocuments((prev) =>
-            prev.map((d) => ({
-              ...d,
-              company: {
-                ...d.company,
-                ...info,
-                signatureUrl: d.company.signatureUrl || info.signatureUrl,
-                stampUrl: d.company.stampUrl || info.stampUrl,
-              },
-            }))
-          );
-          setToastMessage({ text: 'บันทึกข้อมูลกิจการเรียบร้อยแล้ว', type: 'success' });
-        }}
+        companies={companies}
+        activeCompanyId={activeCompanyId}
+        onSaveCompanies={handleSaveCompanies}
       />
 
       <CustomerModal

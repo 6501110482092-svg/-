@@ -53,6 +53,7 @@ import {
 interface DocumentEditorProps {
   initialDocument?: DocumentModel | null;
   defaultType?: DocumentType;
+  companies?: CompanyInfo[];
   companyInfo: CompanyInfo;
   customers: CustomerInfo[];
   products: ProductCatalogItem[];
@@ -63,11 +64,13 @@ interface DocumentEditorProps {
   onDeleteCustomer: (id: string) => void;
   onSaveProduct: (prod: ProductCatalogItem) => void;
   onDeleteProduct: (id: string) => void;
+  onOpenCompanyModal?: () => void;
 }
 
 export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   initialDocument,
   defaultType = 'quotation',
+  companies = [],
   companyInfo,
   customers,
   products,
@@ -78,7 +81,26 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   onDeleteCustomer,
   onSaveProduct,
   onDeleteProduct,
+  onOpenCompanyModal,
 }) => {
+  // Active Issuer Company / Branch state
+  const [currentCompany, setCurrentCompany] = useState<CompanyInfo>(() => {
+    if (initialDocument?.company) return initialDocument.company;
+    if (companies && companies.length > 0) {
+      return companies.find((c) => c.id === companyInfo.id) || companyInfo || companies[0];
+    }
+    return companyInfo;
+  });
+
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>(() => {
+    return (
+      initialDocument?.company?.id ||
+      companyInfo.id ||
+      (companies && companies[0]?.id) ||
+      'company-hq'
+    );
+  });
+
   const [docType, setDocType] = useState<DocumentType>(initialDocument?.type || defaultType);
   const [documentNumber, setDocumentNumber] = useState<string>(
     initialDocument?.documentNumber || generateDocumentNumber(initialDocument?.type || defaultType, existingDocsCount)
@@ -88,14 +110,13 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     initialDocument?.issueDate || new Date().toISOString().split('T')[0]
   );
   const [dueDate, setDueDate] = useState<string>(() => {
-    if (initialDocument?.dueDate) return initialDocument.dueDate;
-    const d = new Date();
-    d.setDate(d.getDate() + 30);
-    return d.toISOString().split('T')[0];
+    if (initialDocument?.dueDate !== undefined) return initialDocument.dueDate;
+    return ''; // Default to none / empty as requested
   });
-  const [paymentTerms, setPaymentTerms] = useState<string>(
-    initialDocument?.paymentTerms || 'เครดิต 30 วัน'
-  );
+  const [paymentTerms, setPaymentTerms] = useState<string>(() => {
+    if (initialDocument?.paymentTerms !== undefined) return initialDocument.paymentTerms;
+    return currentCompany.defaultPaymentTerms || '';
+  });
 
   // Customer State
   const [customer, setCustomer] = useState<CustomerInfo>(
@@ -144,15 +165,15 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
     initialDocument?.overallDiscountType || 'amount'
   );
 
-  // Notes & Terms
-  const [notes, setNotes] = useState<string>(
-    initialDocument?.notes ||
-      'กรุณาตรวจสอบความถูกต้องของเอกสาร หากมีข้อแก้ไขกรุณาแจ้งให้ทราบภายใน 7 วันทำการ'
-  );
-  const [termsAndConditions, setTermsAndConditions] = useState<string>(
-    initialDocument?.termsAndConditions ||
-      '1. การชำระเงินโอนเข้าบัญชีธนาคารตามที่ระบุในเอกสาร\n2. กรณีหักภาษี ณ ที่จ่าย กรุณานำส่งหนังสือรับรองการหักภาษี ณ ที่จ่าย (50 ทวิ)'
-  );
+  // Notes & Terms (Pulled from Branch defaults or initialDocument)
+  const [notes, setNotes] = useState<string>(() => {
+    if (initialDocument?.notes !== undefined) return initialDocument.notes;
+    return currentCompany.defaultRemarks || '';
+  });
+  const [termsAndConditions, setTermsAndConditions] = useState<string>(() => {
+    if (initialDocument?.termsAndConditions !== undefined) return initialDocument.termsAndConditions;
+    return currentCompany.defaultTerms || '';
+  });
 
   // Template & Settings
   const [templateStyle, setTemplateStyle] = useState<TemplateStyle>(
@@ -166,17 +187,17 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   );
   const [qrCodeSource, setQrCodeSource] = useState<'auto' | 'upload'>(() => {
     if (initialDocument?.qrCodeSource) return initialDocument.qrCodeSource;
-    if (initialDocument?.customQrCodeUrl || companyInfo.qrCodeUrl) return 'upload';
+    if (initialDocument?.customQrCodeUrl || currentCompany.qrCodeUrl) return 'upload';
     return 'auto';
   });
   const [customQrCodeUrl, setCustomQrCodeUrl] = useState<string | undefined>(
-    initialDocument?.customQrCodeUrl || companyInfo.qrCodeUrl
+    initialDocument?.customQrCodeUrl || currentCompany.qrCodeUrl
   );
   const [promptPayId, setPromptPayId] = useState<string>(
-    initialDocument?.promptPayId || companyInfo.promptPayId || companyInfo.phone || companyInfo.taxId || ''
+    initialDocument?.promptPayId || currentCompany.promptPayId || currentCompany.phone || currentCompany.taxId || ''
   );
   const [promptPayAccountName, setPromptPayAccountName] = useState<string>(
-    initialDocument?.promptPayAccountName || companyInfo.promptPayName || companyInfo.name || ''
+    initialDocument?.promptPayAccountName || currentCompany.promptPayName || currentCompany.name || ''
   );
   const [promptPayAmountType, setPromptPayAmountType] = useState<'full' | 'open' | 'custom'>(
     initialDocument?.promptPayAmountType || 'full'
@@ -186,29 +207,91 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   );
   const [previewQrDataUrl, setPreviewQrDataUrl] = useState<string>('');
   const [selectedBankAccountId, setSelectedBankAccountId] = useState<string>(
-    initialDocument?.selectedBankAccountId || companyInfo.bankAccounts[0]?.id || ''
+    initialDocument?.selectedBankAccountId || currentCompany.bankAccounts?.[0]?.id || ''
   );
   const [showSignature, setShowSignature] = useState<boolean>(
     initialDocument?.showSignature ?? true
   );
   const [showStamp, setShowStamp] = useState<boolean>(initialDocument?.showStamp ?? true);
   const [preparedByName, setPreparedByName] = useState<string>(
-    initialDocument?.preparedByName || companyInfo.signatureName || ''
+    initialDocument?.preparedByName || currentCompany.signatureName || ''
   );
   const [signaturePosition, setSignaturePosition] = useState<string>(
-    companyInfo.signaturePosition || 'กรรมการผู้จัดการ'
+    currentCompany.signaturePosition || 'กรรมการผู้จัดการ'
   );
   const [docSignatureUrl, setDocSignatureUrl] = useState<string | undefined>(
-    initialDocument?.company?.signatureUrl || companyInfo.signatureUrl
+    initialDocument?.company?.signatureUrl || currentCompany.signatureUrl
   );
   const [docStampUrl, setDocStampUrl] = useState<string | undefined>(
-    initialDocument?.company?.stampUrl || companyInfo.stampUrl
+    initialDocument?.company?.stampUrl || currentCompany.stampUrl
   );
 
   // Modals
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   const [showProductModal, setShowProductModal] = useState(false);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
+
+  // Switch issuer branch dynamically
+  const handleSwitchIssuerBranch = (branchId: string) => {
+    const list = (companies && companies.length > 0) ? companies : [companyInfo];
+    const found = list.find((c) => c.id === branchId) || list[0];
+    if (found) {
+      const prevCompany = currentCompany;
+      setSelectedCompanyId(found.id || branchId);
+      setCurrentCompany(found);
+      setDocSignatureUrl(found.signatureUrl);
+      setDocStampUrl(found.stampUrl);
+      setPreparedByName(found.signatureName || '');
+      setSignaturePosition(found.signaturePosition || 'ผู้จัดการ');
+      if (found.bankAccounts && found.bankAccounts.length > 0) {
+        const defaultAcc = found.bankAccounts.find((b) => b.isDefault) || found.bankAccounts[0];
+        setSelectedBankAccountId(defaultAcc.id);
+      } else {
+        setSelectedBankAccountId('');
+      }
+      const ppId = found.promptPayId || found.phone || found.taxId || '';
+      setPromptPayId(ppId);
+      setPromptPayAccountName(found.promptPayName || found.name || '');
+      if (found.qrCodeUrl) {
+        setCustomQrCodeUrl(found.qrCodeUrl);
+        setQrCodeSource('upload');
+      }
+
+      // If remarks were matching previous company default or empty, switch to new branch default
+      if (found.defaultRemarks !== undefined && (!notes || notes === prevCompany.defaultRemarks)) {
+        setNotes(found.defaultRemarks || '');
+      }
+      // If terms were matching previous company default or empty, switch to new branch default
+      if (found.defaultTerms !== undefined && (!termsAndConditions || termsAndConditions === prevCompany.defaultTerms)) {
+        setTermsAndConditions(found.defaultTerms || '');
+      }
+      // If payment terms were matching previous company default or empty, switch to new branch default
+      if (found.defaultPaymentTerms !== undefined && (!paymentTerms || paymentTerms === prevCompany.defaultPaymentTerms)) {
+        setPaymentTerms(found.defaultPaymentTerms || '');
+      }
+    }
+  };
+
+  // Helper to force apply branch default remarks & terms
+  const handleApplyBranchDefaults = () => {
+    if (currentCompany.defaultRemarks !== undefined) {
+      setNotes(currentCompany.defaultRemarks || '');
+    }
+    if (currentCompany.defaultTerms !== undefined) {
+      setTermsAndConditions(currentCompany.defaultTerms || '');
+    }
+  };
+
+  // Helper to set due date by offset days
+  const handleSetDueDateDays = (days: number) => {
+    if (days === 0) {
+      setDueDate('');
+      return;
+    }
+    const base = issueDate ? new Date(issueDate) : new Date();
+    base.setDate(base.getDate() + days);
+    setDueDate(base.toISOString().split('T')[0]);
+  };
 
   const handleQrUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -360,7 +443,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       dueDate,
       paymentTerms,
       company: {
-        ...companyInfo,
+        ...currentCompany,
         signatureUrl: docSignatureUrl,
         stampUrl: docStampUrl,
         signatureName: preparedByName,
@@ -383,7 +466,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       qrCodeSource,
       customQrCodeUrl,
       promptPayId: activePromptPayTarget,
-      promptPayAccountName: promptPayAccountName.trim() || companyInfo.promptPayName || companyInfo.name,
+      promptPayAccountName: promptPayAccountName.trim() || currentCompany.promptPayName || currentCompany.name,
       promptPayAmountType,
       promptPayCustomAmount: promptPayAmountType === 'custom' ? Number(promptPayCustomAmount) || 0 : undefined,
       selectedBankAccountId,
@@ -483,6 +566,129 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Issuer Company & Branch Selector Card */}
+        <div className="bg-white rounded-2xl p-5 border border-indigo-100 shadow-2xs space-y-4 bg-linear-to-r from-indigo-50/40 via-white to-slate-50/40">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-indigo-100/80">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-900 text-sm">
+                    ข้อมูลผู้ออกเอกสาร / สาขา (Issuer & Branch)
+                  </h3>
+                  <span className="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+                    {currentCompany.branchType === 'headquarters'
+                      ? 'สำนักงานใหญ่'
+                      : `สาขา ${currentCompany.branchNo || '00001'}`}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500">
+                  เลือกสาขาที่ต้องการใช้ออกเอกสารนี้ ระบบจะดึงข้อมูลที่อยู่ เลขสาขา บัญชีธนาคาร และลายเซ็นของสาขานั้นมาแสดงให้อัตโนมัติ
+                </p>
+              </div>
+            </div>
+
+            {/* Branch Selector Dropdown & Quick Actions */}
+            <div className="flex items-center gap-2">
+              <div className="relative min-w-[220px] sm:min-w-[280px]">
+                <select
+                  value={selectedCompanyId}
+                  onChange={(e) => handleSwitchIssuerBranch(e.target.value)}
+                  className="w-full pl-3 pr-8 py-2 bg-white border border-indigo-200 rounded-xl text-xs font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:outline-none shadow-2xs cursor-pointer"
+                >
+                  {((companies && companies.length > 0) ? companies : [companyInfo]).map((comp) => (
+                    <option key={comp.id} value={comp.id}>
+                      {comp.profileName || comp.name} (
+                      {comp.branchType === 'headquarters'
+                        ? 'สำนักงานใหญ่ 00000'
+                        : `สาขา ${comp.branchNo || '00001'}`}
+                      )
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {onOpenCompanyModal && (
+                <button
+                  type="button"
+                  onClick={onOpenCompanyModal}
+                  className="text-xs font-semibold text-indigo-700 hover:text-indigo-900 bg-white hover:bg-indigo-50 border border-indigo-200 px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-2xs transition-colors whitespace-nowrap"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>จัดการสาขา</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Active Branch Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-1">
+            <div className="p-3 bg-white rounded-xl border border-slate-200/80 flex items-start gap-3 shadow-2xs">
+              <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-center overflow-hidden shrink-0">
+                {currentCompany.logoUrl ? (
+                  <img
+                    src={currentCompany.logoUrl}
+                    alt="Logo"
+                    className="w-full h-full object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <Building2 className="w-6 h-6 text-slate-300" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-slate-900 truncate">
+                  {currentCompany.name || 'ไม่ระบุชื่อบริษัท'}
+                </div>
+                <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
+                  เลขภาษี: {currentCompany.taxId || '-'}
+                </div>
+                <div className="text-[11px] text-indigo-600 font-semibold mt-0.5 truncate">
+                  {currentCompany.branchType === 'headquarters'
+                    ? 'สำนักงานใหญ่ (00000)'
+                    : `รหัสสาขา: ${currentCompany.branchNo || '00001'}`}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-2xs">
+              <div className="text-[11px] text-slate-400 font-semibold mb-1">ที่อยู่และข้อมูลติดต่อสาขา</div>
+              <div className="text-slate-700 text-[11px] line-clamp-2 leading-relaxed">
+                {currentCompany.address || '-'}
+              </div>
+              <div className="text-slate-500 text-[11px] mt-1 truncate">
+                📞 {currentCompany.phone || '-'} | ✉️ {currentCompany.email || '-'}
+              </div>
+            </div>
+
+            <div className="p-3 bg-white rounded-xl border border-slate-200/80 flex items-center justify-between shadow-2xs">
+              <div className="min-w-0 flex-1 pr-2">
+                <div className="text-[11px] text-slate-400 font-semibold mb-1">การรับชำระ & ลายเซ็นสาขา</div>
+                <div className="text-slate-800 font-medium text-[11px] truncate">
+                  🏦 {currentCompany.bankAccounts?.[0]
+                    ? `${currentCompany.bankAccounts[0].bankName} (${currentCompany.bankAccounts.length} บัญชี)`
+                    : 'ยังไม่ระบุบัญชี'}
+                </div>
+                <div className="text-slate-500 text-[11px] mt-0.5 truncate">
+                  ✍️ {preparedByName || currentCompany.signatureName || 'ยังไม่ระบุชื่อผู้ลงนาม'}
+                </div>
+              </div>
+              {docStampUrl && (
+                <div className="w-10 h-10 border border-slate-200 rounded-lg overflow-hidden shrink-0 p-0.5 bg-slate-50">
+                  <img
+                    src={docStampUrl}
+                    alt="Stamp"
+                    className="w-full h-full object-contain"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -634,38 +840,163 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">วันที่ออกเอกสาร</label>
+                  <label className="block text-slate-700 font-semibold mb-1 text-xs">วันที่ออกเอกสาร</label>
                   <input
                     type="date"
                     value={issueDate}
                     onChange={(e) => setIssueDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-700 font-semibold mb-1">
-                    {docType === 'quotation' ? 'ยืนราคาถึงวันที่' : 'วันครบกำหนดชำระ'}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-slate-700 font-semibold text-xs">
+                      {docType === 'quotation' ? 'ยืนราคาถึงวันที่' : 'วันครบกำหนดชำระ'}
+                    </label>
+                    {dueDate ? (
+                      <button
+                        type="button"
+                        onClick={() => setDueDate('')}
+                        className="text-[10px] text-rose-600 hover:text-rose-800 font-medium underline"
+                      >
+                        ล้างวัน (ไม่มี)
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-slate-400">(ไม่มีกำหนด)</span>
+                    )}
+                  </div>
                   <input
                     type="date"
                     value={dueDate}
                     onChange={(e) => setDueDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-rose-700 font-medium"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs font-medium ${
+                      dueDate ? 'border-indigo-300 text-indigo-800 bg-indigo-50/20' : 'border-slate-300 text-slate-500'
+                    }`}
                   />
+                  {/* Quick Preset Due Date buttons */}
+                  <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                    <span className="text-[10px] text-slate-400">ลัด:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleSetDueDateDays(0)}
+                      className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors ${
+                        !dueDate ? 'bg-slate-200 text-slate-800 font-bold border-slate-300' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      ไม่มี
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetDueDateDays(7)}
+                      className="text-[10px] px-1.5 py-0.5 rounded border bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                    >
+                      +7 วัน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetDueDateDays(15)}
+                      className="text-[10px] px-1.5 py-0.5 rounded border bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                    >
+                      +15 วัน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetDueDateDays(30)}
+                      className="text-[10px] px-1.5 py-0.5 rounded border bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                    >
+                      +30 วัน
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSetDueDateDays(60)}
+                      className="text-[10px] px-1.5 py-0.5 rounded border bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 transition-colors"
+                    >
+                      +60 วัน
+                    </button>
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 font-semibold mb-1">เงื่อนไขการชำระเงิน</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-slate-700 font-semibold text-xs">เงื่อนไขการชำระเงิน</label>
+                  {currentCompany.defaultPaymentTerms && (
+                    <button
+                      type="button"
+                      onClick={() => setPaymentTerms(currentCompany.defaultPaymentTerms || '')}
+                      className="text-[10px] text-indigo-600 hover:underline flex items-center gap-0.5 font-medium"
+                    >
+                      <span>↺ ดึงค่าเริ่มต้นสาขา</span>
+                    </button>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={paymentTerms}
                   onChange={(e) => setPaymentTerms(e.target.value)}
-                  placeholder="เช่น เครดิต 30 วัน, มัดจำ 50% เมื่องานเริ่ม"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  placeholder="เช่น เครดิต 30 วัน, มัดจำ 50% เมื่องานเริ่ม (เว้นว่างได้)"
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
                 />
+                {/* Quick Payment Term Chips */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                  <span className="text-[10px] text-slate-400">เลือกด่วน:</span>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTerms('')}
+                    className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      !paymentTerms ? 'bg-slate-200 text-slate-800 font-bold border-slate-300' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    เว้นว่าง
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTerms('เงินสด / โอนชำระทันที')}
+                    className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      paymentTerms === 'เงินสด / โอนชำระทันที' ? 'bg-indigo-600 text-white border-indigo-600 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50'
+                    }`}
+                  >
+                    ชำระทันที
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTerms('เครดิต 7 วัน')}
+                    className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      paymentTerms === 'เครดิต 7 วัน' ? 'bg-indigo-600 text-white border-indigo-600 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50'
+                    }`}
+                  >
+                    เครดิต 7 วัน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTerms('เครดิต 15 วัน')}
+                    className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      paymentTerms === 'เครดิต 15 วัน' ? 'bg-indigo-600 text-white border-indigo-600 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50'
+                    }`}
+                  >
+                    เครดิต 15 วัน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTerms('เครดิต 30 วัน')}
+                    className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      paymentTerms === 'เครดิต 30 วัน' ? 'bg-indigo-600 text-white border-indigo-600 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50'
+                    }`}
+                  >
+                    เครดิต 30 วัน
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentTerms('มัดจำ 50% เมื่องานเริ่ม')}
+                    className={`text-[10px] px-2 py-0.5 rounded border transition-colors ${
+                      paymentTerms === 'มัดจำ 50% เมื่องานเริ่ม' ? 'bg-indigo-600 text-white border-indigo-600 font-semibold' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-indigo-50'
+                    }`}
+                  >
+                    มัดจำ 50%
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -814,34 +1145,91 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Notes & Terms */}
           <div className="lg:col-span-7 bg-white rounded-2xl p-5 border border-slate-200 shadow-2xs space-y-4">
-            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
-              <FileText className="w-4 h-4 text-indigo-600" />
-              หมายเหตุและข้อตกลง (Notes & Terms)
-            </h3>
+            <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
+                <FileText className="w-4 h-4 text-indigo-600" />
+                <span>หมายเหตุและเงื่อนไขข้อตกลง (Notes & Terms)</span>
+              </h3>
+              {(currentCompany.defaultRemarks || currentCompany.defaultTerms) && (
+                <button
+                  type="button"
+                  onClick={handleApplyBranchDefaults}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-lg flex items-center gap-1 transition-colors"
+                  title="รีเซ็ตข้อความเป็นค่าเริ่มต้นที่ตั้งไว้ในข้อมูลสาขานี้"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>↺ ดึงค่าเริ่มต้นจากสาขานี้</span>
+                </button>
+              )}
+            </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
-                หมายเหตุท้ายเอกสาร (Remarks)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-semibold text-xs">
+                  หมายเหตุท้ายเอกสาร (Remarks)
+                </label>
+                <div className="flex items-center gap-2">
+                  {currentCompany.defaultRemarks && (
+                    <button
+                      type="button"
+                      onClick={() => setNotes(currentCompany.defaultRemarks || '')}
+                      className="text-[10px] text-indigo-600 hover:underline"
+                    >
+                      ใช้ค่าเริ่มต้นสาขา
+                    </button>
+                  )}
+                  {notes && (
+                    <button
+                      type="button"
+                      onClick={() => setNotes('')}
+                      className="text-[10px] text-slate-400 hover:text-rose-600"
+                    >
+                      ล้างข้อความ
+                    </button>
+                  )}
+                </div>
+              </div>
               <textarea
                 rows={2}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="ระบุข้อความหมายเหตุเพิ่มเติม..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="ระบุข้อความหมายเหตุเพิ่มเติมสำหรับเอกสารใบนี้..."
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 font-semibold mb-1">
-                เงื่อนไขและข้อตกลง (Terms & Conditions)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-slate-700 font-semibold text-xs">
+                  เงื่อนไขและข้อตกลง (Terms & Conditions)
+                </label>
+                <div className="flex items-center gap-2">
+                  {currentCompany.defaultTerms && (
+                    <button
+                      type="button"
+                      onClick={() => setTermsAndConditions(currentCompany.defaultTerms || '')}
+                      className="text-[10px] text-indigo-600 hover:underline"
+                    >
+                      ใช้ค่าเริ่มต้นสาขา
+                    </button>
+                  )}
+                  {termsAndConditions && (
+                    <button
+                      type="button"
+                      onClick={() => setTermsAndConditions('')}
+                      className="text-[10px] text-slate-400 hover:text-rose-600"
+                    >
+                      ล้างข้อความ
+                    </button>
+                  )}
+                </div>
+              </div>
               <textarea
                 rows={3}
                 value={termsAndConditions}
                 onChange={(e) => setTermsAndConditions(e.target.value)}
-                placeholder="ระบุเงื่อนไขการรับประกัน หรือการส่งมอบงาน..."
-                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                placeholder="ระบุเงื่อนไขการรับประกัน การส่งมอบงาน หรือข้อตกลงเพิ่มเติม..."
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
               />
             </div>
 

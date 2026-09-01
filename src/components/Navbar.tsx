@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DocumentType } from '../types';
+import { DocumentType, CompanyInfo } from '../types';
 import {
   Receipt,
   FileSpreadsheet,
@@ -10,6 +10,9 @@ import {
   ChevronDown,
   Sparkles,
   Layers,
+  Star,
+  Check,
+  Building,
 } from 'lucide-react';
 
 interface NavbarProps {
@@ -17,6 +20,9 @@ interface NavbarProps {
   onOpenCustomers: () => void;
   onOpenProducts: () => void;
   onCreateNewDoc: (type: DocumentType) => void;
+  companies?: CompanyInfo[];
+  activeCompany?: CompanyInfo;
+  onSwitchActiveCompany?: (companyId: string) => void;
   companyName: string;
 }
 
@@ -25,9 +31,19 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCustomers,
   onOpenProducts,
   onCreateNewDoc,
+  companies = [],
+  activeCompany,
+  onSwitchActiveCompany,
   companyName,
 }) => {
   const [showCreateDropdown, setShowCreateDropdown] = useState(false);
+  const [showBranchDropdown, setShowBranchDropdown] = useState(false);
+
+  const currentBranchLabel =
+    activeCompany?.profileName ||
+    (activeCompany?.branchType === 'headquarters'
+      ? 'สำนักงานใหญ่'
+      : `สาขา ${activeCompany?.branchNo || '00001'}`);
 
   return (
     <header className="no-print bg-white border-b border-slate-200/80 sticky top-0 z-40">
@@ -47,7 +63,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   ระบบเอกสารธุรกิจไทย
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 font-medium truncate max-w-[240px] sm:max-w-md">
+              <p className="text-[11px] text-slate-500 font-medium truncate max-w-[200px] sm:max-w-sm">
                 {companyName || 'ระบบออกใบเสนอราคา ใบวางบิล ใบแจ้งหนี้ ใบเสร็จรับเงิน'}
               </p>
             </div>
@@ -55,6 +71,97 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Nav Controls */}
           <div className="flex items-center gap-2">
+            {/* Branch Selector Dropdown */}
+            {companies && companies.length > 0 && (
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowBranchDropdown(!showBranchDropdown)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200/80 text-slate-800 rounded-xl text-xs font-semibold transition-colors border border-slate-200/70"
+                  title="คลิกเพื่อสลับสาขาที่กำลังใช้งาน"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
+                  <span className="max-w-[130px] sm:max-w-[180px] truncate">
+                    {currentBranchLabel}
+                  </span>
+                  {companies.length > 1 && (
+                    <span className="bg-indigo-600 text-white text-[9px] px-1.5 py-0.2 rounded-full font-bold">
+                      {companies.length}
+                    </span>
+                  )}
+                  <ChevronDown className="w-3.5 h-3.5 text-slate-500 opacity-80" />
+                </button>
+
+                {showBranchDropdown && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowBranchDropdown(false)}
+                    />
+                    <div className="absolute left-0 sm:right-0 sm:left-auto mt-2 w-72 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
+                      <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                        <span>สลับสาขาที่ต้องการออกเอกสาร</span>
+                        <span className="text-indigo-600">{companies.length} สาขา</span>
+                      </div>
+                      <div className="max-h-60 overflow-y-auto divide-y divide-slate-100">
+                        {companies.map((comp) => {
+                          const isCurrent = comp.id === activeCompany?.id;
+                          return (
+                            <button
+                              key={comp.id}
+                              type="button"
+                              onClick={() => {
+                                if (onSwitchActiveCompany && comp.id) {
+                                  onSwitchActiveCompany(comp.id);
+                                }
+                                setShowBranchDropdown(false);
+                              }}
+                              className={`w-full px-3.5 py-2.5 text-left hover:bg-indigo-50/60 flex items-start justify-between gap-2 transition-colors ${
+                                isCurrent ? 'bg-indigo-50/80' : ''
+                              }`}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-bold text-slate-900 truncate">
+                                    {comp.profileName || comp.name}
+                                  </span>
+                                  {comp.isDefault && (
+                                    <Star className="w-3 h-3 fill-amber-500 text-amber-500 shrink-0" />
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-slate-500 truncate mt-0.5">
+                                  {comp.branchType === 'headquarters'
+                                    ? 'สำนักงานใหญ่ (00000)'
+                                    : `สาขา: ${comp.branchNo || '00001'}`}{' '}
+                                  • {comp.name}
+                                </div>
+                              </div>
+                              {isCurrent && (
+                                <Check className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="px-2 pt-2 mt-1 border-t border-slate-100">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowBranchDropdown(false);
+                            onOpenCompanyProfile();
+                          }}
+                          className="w-full py-1.5 px-3 text-center text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>+ เพิ่ม / จัดการข้อมูลสาขา</span>
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Quick Menu items */}
             <div className="hidden md:flex items-center gap-1 text-xs">
               <button
