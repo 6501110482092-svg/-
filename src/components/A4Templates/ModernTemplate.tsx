@@ -307,25 +307,24 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
       {/* Signature Section at bottom */}
       <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200 page-break-inside-avoid text-xs">
         {/* Customer / Receiver Signature */}
-        <div className="flex flex-col items-center justify-end text-center p-1.5 rounded bg-slate-50/50 border border-dashed border-slate-300 min-h-[70px]">
-          <div className="h-6 flex items-center justify-center">
-            <span className="text-slate-300 font-cursive text-xs">......................................................</span>
+        <div className="flex flex-col items-center justify-end text-center p-2 rounded bg-slate-50/50 border border-slate-200 min-h-[68px]">
+          <div className="h-6 w-full flex items-end justify-center pb-0.5">
+            <div className="w-40 border-b border-slate-400"></div>
           </div>
-          <div className="w-36 border-b border-slate-400 my-0.2"></div>
-          <div className="font-bold text-slate-800 text-[11px]">
+          <div className="font-bold text-slate-800 text-[11px] mt-1">
             {document.type === 'quotation'
               ? 'ผู้อนุมัติสั่งซื้อ / Customer Approval'
               : document.type === 'billing'
               ? 'ผู้รับวางบิล / Received By'
               : 'ผู้รับบริการ / Customer'}
           </div>
-          <div className="text-[10px] text-slate-500 mt-0.2">
+          <div className="text-[10px] text-slate-500">
             วันที่ / Date: _____ / _____ / _________
           </div>
         </div>
 
         {/* Company Authorized Signer */}
-        <div className="flex flex-col items-center justify-end text-center p-1.5 rounded bg-slate-50/50 border border-dashed border-slate-300 min-h-[70px] relative">
+        <div className="flex flex-col items-center justify-end text-center p-2 rounded bg-slate-50/50 border border-slate-200 min-h-[68px] relative">
           {document.showStamp && company.stampUrl && (
             <img
               src={company.stampUrl}
@@ -334,26 +333,21 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
             />
           )}
 
-          <div className="h-6 flex items-center justify-center">
-            {document.showSignature && company.signatureUrl ? (
+          <div className="h-6 w-full flex flex-col items-center justify-end pb-0.5">
+            {document.showSignature && company.signatureUrl && (
               <img
                 src={company.signatureUrl}
                 alt="Signature"
-                className="max-h-6 w-auto object-contain"
+                className="max-h-6 w-auto object-contain -mb-1"
               />
-            ) : (
-              <span className="text-slate-300 text-xs">......................................................</span>
             )}
+            <div className="w-40 border-b border-slate-400"></div>
           </div>
-          <div className="w-36 border-b border-slate-400 my-0.2"></div>
-          <div className="font-bold text-slate-800 text-[11px]">
+          <div className="font-bold text-slate-800 text-[11px] mt-1">
             {document.preparedByName || company.signatureName || 'ผู้มีอำนาจลงนาม / Authorized Signer'}
           </div>
           <div className="text-[10px] text-slate-500">
             {company.signaturePosition || 'ในนาม ' + (company.name || 'บริษัท')}
-          </div>
-          <div className="text-[9px] text-slate-400">
-            วันที่: {document.issueDate}
           </div>
         </div>
       </div>

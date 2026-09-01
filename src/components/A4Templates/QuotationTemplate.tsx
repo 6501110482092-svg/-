@@ -326,36 +326,20 @@ export const QuotationTemplate: React.FC<TemplateProps> = ({ document }) => {
       {/* Signature Section at bottom */}
       <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200 page-break-inside-avoid text-xs">
         {/* Customer / Purchaser Approval Box */}
-        <div className="flex flex-col justify-between p-1.5 rounded bg-slate-50/60 border border-slate-300 min-h-[70px] text-center">
-          <div className="text-[10px] text-slate-500 font-semibold text-left mb-0.2 flex items-center gap-1">
-            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
-            <span>ตกลงสั่งซื้อ / สั่งจ้างตามรายการข้างต้น</span>
+        <div className="flex flex-col items-center justify-end text-center p-2 rounded bg-slate-50/50 border border-slate-200 min-h-[68px]">
+          <div className="h-6 w-full flex items-end justify-center pb-0.5">
+            <div className="w-40 border-b border-slate-400"></div>
           </div>
-
-          <div className="h-6 flex items-center justify-center my-0.2">
-            <span className="text-slate-300 text-xs">..................................................................</span>
+          <div className="font-bold text-slate-800 text-[11px] mt-1">
+            ผู้อนุมัติสั่งซื้อ / Customer Approval
           </div>
-
-          <div>
-            <div className="font-bold text-slate-800 text-[11px]">
-              ( .................................................................. )
-            </div>
-            <div className="text-[10px] text-slate-500">
-              ผู้อนุมัติสั่งซื้อ / ผู้มีอำนาจลงนาม
-            </div>
-            <div className="text-[9px] text-slate-400">
-              วันที่: _____ / _____ / _________
-            </div>
+          <div className="text-[10px] text-slate-500">
+            วันที่ / Date: _____ / _____ / _________
           </div>
         </div>
 
         {/* Company Authorized Signer Box */}
-        <div className="flex flex-col justify-between p-1.5 rounded bg-slate-50/60 border border-slate-300 min-h-[70px] text-center relative">
-          <div className="text-[10px] text-indigo-700 font-semibold text-left mb-0.2 flex items-center gap-1">
-            <UserCheck className="w-2.5 h-2.5 text-indigo-600" />
-            <span>ในนามผู้เสนอราคา (For Company)</span>
-          </div>
-
+        <div className="flex flex-col items-center justify-end text-center p-2 rounded bg-slate-50/50 border border-slate-200 min-h-[68px] relative">
           {/* Stamp Overlay */}
           {document.showStamp && company.stampUrl && (
             <img
@@ -366,28 +350,22 @@ export const QuotationTemplate: React.FC<TemplateProps> = ({ document }) => {
           )}
 
           {/* Signature Area */}
-          <div className="h-6 flex items-center justify-center my-0.2">
-            {document.showSignature && company.signatureUrl ? (
+          <div className="h-6 w-full flex flex-col items-center justify-end pb-0.5">
+            {document.showSignature && company.signatureUrl && (
               <img
                 src={company.signatureUrl}
                 alt="Signature"
-                className="max-h-6 w-auto object-contain"
+                className="max-h-6 w-auto object-contain -mb-1"
               />
-            ) : (
-              <span className="text-slate-300 text-xs">..................................................................</span>
             )}
+            <div className="w-40 border-b border-slate-400"></div>
           </div>
 
-          <div>
-            <div className="font-bold text-slate-900 text-[11px]">
-              ( {document.preparedByName || company.signatureName || 'ผู้มีอำนาจลงนาม'} )
-            </div>
-            <div className="text-[10px] text-slate-600 font-medium">
-              {company.signaturePosition || 'กรรมการผู้จัดการ'}
-            </div>
-            <div className="text-[9px] text-slate-500">
-              วันที่: {document.issueDate}
-            </div>
+          <div className="font-bold text-slate-900 text-[11px] mt-1">
+            {document.preparedByName || company.signatureName || 'ผู้มีอำนาจลงนาม / Authorized Signer'}
+          </div>
+          <div className="text-[10px] text-slate-600 font-medium">
+            {company.signaturePosition || 'ในนาม ' + (company.name || 'บริษัท')}
           </div>
         </div>
       </div>
