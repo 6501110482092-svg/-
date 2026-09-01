@@ -57,41 +57,41 @@ export const PromptPayBox: React.FC<PromptPayBoxProps> = ({ document, accentColo
   const targetLabel = target ? getPromptPayLabel(target) : 'พร้อมเพย์';
 
   return (
-    <div className="flex flex-col sm:flex-row items-stretch gap-2.5 p-2.5 bg-gradient-to-br from-slate-50 to-blue-50/20 rounded-lg border border-slate-200 text-xs page-break-inside-avoid">
+    <div className="flex flex-row items-stretch gap-2 p-2 bg-gradient-to-br from-slate-50 to-blue-50/20 rounded-lg border border-slate-200 text-xs page-break-inside-avoid">
       {document.showPromptPayQR && activeQrImageUrl && (
-        <div className="flex flex-col items-center justify-between p-2 bg-white rounded-lg border border-slate-200 shrink-0 w-full sm:w-36 text-center">
+        <div className="flex flex-col items-center justify-between p-1.5 bg-white rounded-lg border border-slate-200 shrink-0 w-28 text-center">
           {/* Thai PromptPay Banner Header */}
-          <div className="w-full bg-[#003B71] text-white py-0.5 px-1.5 rounded-t flex items-center justify-center gap-1 -mt-1 -mx-1 mb-1">
-            <QrCode className="w-3 h-3 text-sky-200" />
-            <span className="font-bold text-[9px] tracking-wide">THAI QR PAYMENT</span>
+          <div className="w-full bg-[#003B71] text-white py-0.5 px-1 rounded-t flex items-center justify-center gap-1 -mt-1 -mx-1 mb-0.5">
+            <QrCode className="w-2.5 h-2.5 text-sky-200" />
+            <span className="font-bold text-[8px] tracking-wide">THAI QR PAYMENT</span>
           </div>
 
-          <div className="p-0.5 bg-white rounded flex items-center justify-center my-0.5">
+          <div className="p-0.5 bg-white rounded flex items-center justify-center">
             <img
               src={activeQrImageUrl}
               alt="Payment QR Code"
-              className="w-20 h-20 sm:w-22 sm:h-22 object-contain rounded"
+              className="w-16 h-16 object-contain rounded"
             />
           </div>
 
           <div className="w-full mt-0.5 space-y-0.5">
             {formattedTarget ? (
-              <div className="text-[10px] font-bold text-slate-800 font-mono tracking-tight">
+              <div className="text-[9px] font-bold text-slate-800 font-mono tracking-tight">
                 {formattedTarget}
               </div>
             ) : null}
             {accountOwnerName && (
-              <div className="text-[9px] text-slate-500 truncate max-w-[130px] mx-auto" title={accountOwnerName}>
+              <div className="text-[8px] text-slate-500 truncate max-w-[100px] mx-auto" title={accountOwnerName}>
                 {accountOwnerName}
               </div>
             )}
             {calculatedAmount !== undefined ? (
-              <div className="inline-block mt-0.5 px-1.5 py-0.2 bg-blue-50 text-blue-800 font-bold text-[10px] rounded border border-blue-200">
+              <div className="inline-block px-1 py-0.2 bg-blue-50 text-blue-800 font-bold text-[9px] rounded border border-blue-200">
                 ฿{formatCurrency(calculatedAmount)}
               </div>
             ) : (
-              <div className="text-[8px] text-slate-400 font-medium">
-                (ระบุยอดเงินตามใบแจ้ง)
+              <div className="text-[7px] text-slate-400 font-medium">
+                (ตามใบแจ้งหนี้)
               </div>
             )}
           </div>
@@ -99,36 +99,36 @@ export const PromptPayBox: React.FC<PromptPayBoxProps> = ({ document, accentColo
       )}
 
       {bankAccount && (
-        <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0 space-y-1.5">
+        <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0 space-y-1">
           <div>
-            <div className="flex items-center gap-1 font-bold text-slate-800 text-[11px] mb-1">
-              <Building2 className="w-3 h-3 text-blue-700" />
+            <div className="flex items-center gap-1 font-bold text-slate-800 text-[10px] mb-0.5">
+              <Building2 className="w-2.5 h-2.5 text-blue-700" />
               <span>ช่องทางการชำระเงิน (Payment Information)</span>
             </div>
 
-            <div className="space-y-1 text-slate-700 bg-white p-2 rounded-lg border border-slate-200 text-xs">
-              <div className="flex items-baseline gap-2">
-                <span className="text-slate-500 text-[10px] w-16 shrink-0">ธนาคาร:</span>
-                <span className="font-bold text-slate-900 text-xs">
-                  {bankAccount.bankName} {bankAccount.branch && <span className="font-normal text-slate-600 text-[11px]">({bankAccount.branch})</span>}
+            <div className="space-y-0.5 text-slate-700 bg-white p-1.5 rounded-lg border border-slate-200 text-[11px]">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-slate-500 text-[9px] w-14 shrink-0">ธนาคาร:</span>
+                <span className="font-bold text-slate-900 text-[11px]">
+                  {bankAccount.bankName} {bankAccount.branch && <span className="font-normal text-slate-600 text-[10px]">({bankAccount.branch})</span>}
                 </span>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-slate-500 text-[10px] w-16 shrink-0">ชื่อบัญชี:</span>
-                <span className="font-medium text-slate-800 text-xs">{bankAccount.accountName}</span>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-slate-500 text-[9px] w-14 shrink-0">ชื่อบัญชี:</span>
+                <span className="font-medium text-slate-800 text-[11px]">{bankAccount.accountName}</span>
               </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-slate-500 text-[10px] w-16 shrink-0">เลขที่บัญชี:</span>
-                <span className="font-bold text-blue-900 tracking-wider font-mono text-xs bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-slate-500 text-[9px] w-14 shrink-0">เลขที่บัญชี:</span>
+                <span className="font-bold text-blue-900 tracking-wider font-mono text-[11px] bg-blue-50 px-1 py-0.2 rounded border border-blue-200">
                   {bankAccount.accountNumber}
                 </span>
               </div>
 
               {document.showPromptPayQR && target && (
-                <div className="flex items-baseline gap-2 pt-0.5 border-t border-slate-100">
-                  <span className="text-slate-500 text-[10px] w-16 shrink-0">พร้อมเพย์:</span>
-                  <span className="font-mono font-bold text-slate-800 text-xs">
-                    {formattedTarget} <span className="font-sans font-normal text-slate-500 text-[10px]">({targetLabel})</span>
+                <div className="flex items-baseline gap-1.5 pt-0.5 border-t border-slate-100">
+                  <span className="text-slate-500 text-[9px] w-14 shrink-0">พร้อมเพย์:</span>
+                  <span className="font-mono font-bold text-slate-800 text-[11px]">
+                    {formattedTarget} <span className="font-sans font-normal text-slate-500 text-[9px]">({targetLabel})</span>
                   </span>
                 </div>
               )}
@@ -145,8 +145,8 @@ export const PromptPayBox: React.FC<PromptPayBoxProps> = ({ document, accentColo
               if (!noticeText) return null;
 
               return (
-                <div className="text-[10px] text-slate-500 flex items-center gap-1 pt-0.5 border-t border-slate-200/60">
-                  <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                <div className="text-[9px] text-slate-500 flex items-center gap-1 pt-0.5 border-t border-slate-200/60">
+                  <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
                   <span>{noticeText}</span>
                 </div>
               );
