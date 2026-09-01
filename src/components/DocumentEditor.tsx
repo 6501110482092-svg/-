@@ -137,6 +137,12 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   const [withholdingTaxRate, setWithholdingTaxRate] = useState<number>(
     initialDocument?.withholdingTaxRate ?? 3
   );
+  const [overallDiscountValue, setOverallDiscountValue] = useState<number>(
+    initialDocument?.overallDiscountValue ?? initialDocument?.discountTotal ?? 0
+  );
+  const [overallDiscountType, setOverallDiscountType] = useState<'amount' | 'percent'>(
+    initialDocument?.overallDiscountType || 'amount'
+  );
 
   // Notes & Terms
   const [notes, setNotes] = useState<string>(
@@ -299,7 +305,14 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   };
 
   // Live Totals Calculation
-  const totals = calculateDocumentTotals(items, vatType, vatRate, withholdingTaxRate);
+  const totals = calculateDocumentTotals(
+    items,
+    vatType,
+    vatRate,
+    withholdingTaxRate,
+    overallDiscountValue,
+    overallDiscountType
+  );
 
   // Calculate live amount for PromptPay preview
   const livePaymentAmount = totals.withholdingTaxAmount > 0 ? totals.netPayment : totals.grandTotal;
@@ -360,6 +373,8 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       vatType,
       vatRate,
       withholdingTaxRate,
+      overallDiscountValue,
+      overallDiscountType,
       ...totals,
       status,
       templateStyle,
@@ -700,7 +715,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left min-w-[700px]">
+            <table className="w-full text-xs text-left min-w-[650px]">
               <thead>
                 <tr className="bg-slate-50 text-slate-700 border-b border-slate-200">
                   <th className="py-2.5 px-2 text-center w-10">#</th>
@@ -708,19 +723,13 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   <th className="py-2.5 px-2 text-center w-20">จำนวน</th>
                   <th className="py-2.5 px-2 text-center w-20">หน่วย</th>
                   <th className="py-2.5 px-2 text-right w-28">ราคาต่อหน่วย</th>
-                  <th className="py-2.5 px-2 text-right w-24">ส่วนลด</th>
                   <th className="py-2.5 px-3 text-right w-28">ยอดรวม (฿)</th>
                   <th className="py-2.5 px-2 text-center w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {items.map((item, idx) => {
-                  const rawTotal = item.quantity * item.unitPrice;
-                  const discount =
-                    item.discountType === 'percent'
-                      ? rawTotal * (item.discountValue / 100)
-                      : item.discountValue;
-                  const itemTotal = Math.max(0, rawTotal - discount);
+                  const itemTotal = item.quantity * item.unitPrice;
 
                   return (
                     <tr key={item.id || idx} className="align-top hover:bg-slate-50/50">
@@ -778,34 +787,6 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                           }
                           className="w-full px-2 py-1.5 border border-slate-300 rounded-lg font-mono text-right"
                         />
-                      </td>
-                      <td className="py-3 px-2">
-                        <div className="flex items-center gap-1">
-                          <input
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={item.discountValue}
-                            onChange={(e) =>
-                              handleUpdateItem(idx, 'discountValue', parseFloat(e.target.value) || 0)
-                            }
-                            className="w-full px-1.5 py-1.5 border border-slate-300 rounded-lg font-mono text-right"
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleUpdateItem(
-                                idx,
-                                'discountType',
-                                item.discountType === 'percent' ? 'amount' : 'percent'
-                              )
-                            }
-                            className="px-1.5 py-1 rounded bg-slate-100 text-slate-600 hover:bg-slate-200 text-[10px] font-mono shrink-0"
-                            title="สลับระหว่าง % หรือ บาท"
-                          >
-                            {item.discountType === 'percent' ? '%' : '฿'}
-                          </button>
-                        </div>
                       </td>
                       <td className="py-3 px-3 text-right font-bold text-slate-900 font-mono pt-4">
                         ฿{formatCurrency(itemTotal)}
@@ -972,24 +953,52 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
               </div>
 
               {/* Financial Calculation summary */}
-              <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                <div className="flex justify-between text-slate-600">
+              <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5">
+                <div className="flex justify-between text-slate-600 text-xs">
                   <span>รวมเป็นเงิน (Subtotal):</span>
-                  <span className="font-mono">฿{formatCurrency(totals.subtotal)}</span>
+                  <span className="font-mono font-medium">฿{formatCurrency(totals.subtotal)}</span>
                 </div>
+
+                {/* Direct Discount Input */}
+                <div className="flex items-center justify-between text-slate-700 text-xs py-1 border-y border-slate-200/80">
+                  <span className="font-semibold text-slate-700">ส่วนลด (Discount):</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="relative flex items-center">
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={overallDiscountValue === 0 ? '' : overallDiscountValue}
+                        onChange={(e) => setOverallDiscountValue(parseFloat(e.target.value) || 0)}
+                        placeholder="0.00"
+                        className="w-28 px-2.5 py-1 text-right font-mono font-bold text-rose-600 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setOverallDiscountType((prev) => (prev === 'percent' ? 'amount' : 'percent'))}
+                      className="px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold shrink-0 transition-colors"
+                      title="สลับระหว่าง บาท (฿) หรือ เปอร์เซ็นต์ (%)"
+                    >
+                      {overallDiscountType === 'percent' ? '%' : '฿'}
+                    </button>
+                  </div>
+                </div>
+
                 {totals.discountTotal > 0 && (
-                  <div className="flex justify-between text-rose-600">
-                    <span>ส่วนลดรวม (Discount):</span>
-                    <span className="font-mono">-฿{formatCurrency(totals.discountTotal)}</span>
+                  <div className="flex justify-between text-rose-600 text-xs">
+                    <span>หักส่วนลดรวม ({overallDiscountType === 'percent' ? `${overallDiscountValue}%` : 'บาท'}):</span>
+                    <span className="font-mono font-semibold">-฿{formatCurrency(totals.discountTotal)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-slate-700 font-medium">
+
+                <div className="flex justify-between text-slate-700 font-medium text-xs">
                   <span>ยอดหลังหักส่วนลด:</span>
                   <span className="font-mono">฿{formatCurrency(totals.afterDiscount)}</span>
                 </div>
 
                 {vatType !== 'none' && (
-                  <div className="flex justify-between text-slate-600">
+                  <div className="flex justify-between text-slate-600 text-xs">
                     <span>ภาษีมูลค่าเพิ่ม VAT {vatRate}%:</span>
                     <span className="font-mono">฿{formatCurrency(totals.vatAmount)}</span>
                   </div>

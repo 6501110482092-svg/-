@@ -89,6 +89,8 @@ export interface DocumentModel {
   
   // Financial calculation fields
   subtotal: number;
+  overallDiscountType?: 'amount' | 'percent';
+  overallDiscountValue?: number;
   discountTotal: number;
   afterDiscount: number;
   vatType: VatType;

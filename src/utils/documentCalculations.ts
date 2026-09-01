@@ -16,20 +16,24 @@ export function calculateDocumentTotals(
   items: DocumentItem[],
   vatType: VatType = 'excluded',
   vatRate: number = 7,
-  withholdingTaxRate: number = 0
+  withholdingTaxRate: number = 0,
+  overallDiscountValue: number = 0,
+  overallDiscountType: 'amount' | 'percent' = 'amount'
 ): CalculationResult {
   let subtotal = 0;
-  let discountTotal = 0;
+  let itemDiscountTotal = 0;
   let taxableSubtotal = 0;
 
   items.forEach((item) => {
     const rawItemTotal = item.quantity * item.unitPrice;
     let itemDiscount = 0;
 
-    if (item.discountType === 'percent') {
-      itemDiscount = rawItemTotal * (item.discountValue / 100);
-    } else {
-      itemDiscount = item.discountValue;
+    if (item.discountValue && item.discountValue > 0) {
+      if (item.discountType === 'percent') {
+        itemDiscount = rawItemTotal * (item.discountValue / 100);
+      } else {
+        itemDiscount = item.discountValue;
+      }
     }
 
     // Ensure discount doesn't exceed item total
@@ -37,24 +41,39 @@ export function calculateDocumentTotals(
     const finalItemTotal = rawItemTotal - itemDiscount;
 
     subtotal += rawItemTotal;
-    discountTotal += itemDiscount;
+    itemDiscountTotal += itemDiscount;
 
     if (item.isTaxable !== false) {
-      taxableSubtotal += finalItemTotal;
+      taxableSubtotal += rawItemTotal;
     }
   });
 
+  // Calculate overall discount
+  let overallDiscount = 0;
+  if (overallDiscountType === 'percent') {
+    overallDiscount = (subtotal * (overallDiscountValue || 0)) / 100;
+  } else {
+    overallDiscount = overallDiscountValue || 0;
+  }
+
+  // If overall discount is specified, use it; otherwise fallback to item discounts
+  const discountTotal = overallDiscountValue > 0 ? Math.min(subtotal, Math.max(0, overallDiscount)) : itemDiscountTotal;
   const afterDiscount = Math.max(0, subtotal - discountTotal);
+
+  // Calculate taxable base proportionally after discount
+  const taxableRatio = subtotal > 0 ? taxableSubtotal / subtotal : 1;
+  const effectiveTaxable = afterDiscount * taxableRatio;
+
   let vatAmount = 0;
   let grandTotal = 0;
 
   if (vatType === 'excluded') {
     // Standard VAT added on top
-    vatAmount = (taxableSubtotal * vatRate) / 100;
+    vatAmount = (effectiveTaxable * vatRate) / 100;
     grandTotal = afterDiscount + vatAmount;
   } else if (vatType === 'included') {
     // VAT is already inside the total (Price * 7 / 107)
-    vatAmount = (taxableSubtotal * vatRate) / (100 + vatRate);
+    vatAmount = (effectiveTaxable * vatRate) / (100 + vatRate);
     grandTotal = afterDiscount;
   } else {
     // No VAT

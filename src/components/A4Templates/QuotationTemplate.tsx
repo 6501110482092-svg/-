@@ -171,18 +171,13 @@ export const QuotationTemplate: React.FC<TemplateProps> = ({ document }) => {
                 <th className="py-1 px-2 border-r border-indigo-600">รายการสินค้า / รายละเอียด</th>
                 <th className="py-1 px-1.5 text-center w-14 border-r border-indigo-600">จำนวน</th>
                 <th className="py-1 px-1.5 text-center w-14 border-r border-indigo-600">หน่วย</th>
-                <th className="py-1 px-2 text-right w-20 border-r border-indigo-600">ราคา/หน่วย</th>
-                <th className="py-1 px-1.5 text-right w-16 border-r border-indigo-600">ส่วนลด</th>
-                <th className="py-1 px-2 text-right w-24">จำนวนเงิน</th>
+                <th className="py-1 px-2 text-right w-24 border-r border-indigo-600">ราคา/หน่วย</th>
+                <th className="py-1 px-2 text-right w-28">จำนวนเงิน</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-[11px]">
               {items.map((item, idx) => {
-                const rawTotal = item.quantity * item.unitPrice;
-                const discount = item.discountType === 'percent'
-                  ? rawTotal * (item.discountValue / 100)
-                  : item.discountValue;
-                const itemTotal = rawTotal - discount;
+                const itemTotal = item.quantity * item.unitPrice;
 
                 return (
                   <tr key={item.id || idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}>
@@ -205,13 +200,6 @@ export const QuotationTemplate: React.FC<TemplateProps> = ({ document }) => {
                     </td>
                     <td className="py-1 px-2 text-right border-r border-slate-200 font-mono">
                       {formatCurrency(item.unitPrice)}
-                    </td>
-                    <td className="py-1 px-1.5 text-right border-r border-slate-200 font-mono text-slate-500">
-                      {item.discountValue > 0
-                        ? item.discountType === 'percent'
-                          ? `${item.discountValue}%`
-                          : formatCurrency(item.discountValue)
-                        : '-'}
                     </td>
                     <td className="py-1 px-2 text-right font-bold text-slate-900 font-mono">
                       {formatCurrency(itemTotal)}

@@ -70,18 +70,13 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
               <th className="py-2 px-2">รายการ / Description</th>
               <th className="py-2 px-2 text-center w-12">จำนวน</th>
               <th className="py-2 px-2 text-center w-12">หน่วย</th>
-              <th className="py-2 px-2 text-right w-20">ราคา</th>
-              <th className="py-2 px-2 text-right w-16">ส่วนลด</th>
-              <th className="py-2 px-2 text-right w-24">รวม</th>
+              <th className="py-2 px-2 text-right w-24">ราคา</th>
+              <th className="py-2 px-2 text-right w-28">รวม</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {items.map((item, idx) => {
-              const rawTotal = item.quantity * item.unitPrice;
-              const discount = item.discountType === 'percent'
-                ? rawTotal * (item.discountValue / 100)
-                : item.discountValue;
-              const itemTotal = rawTotal - discount;
+              const itemTotal = item.quantity * item.unitPrice;
 
               return (
                 <tr key={item.id || idx}>
@@ -93,9 +88,6 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
                   <td className="py-2.5 px-2 text-center font-mono">{item.quantity}</td>
                   <td className="py-2.5 px-2 text-center text-slate-500">{item.unit || 'ชิ้น'}</td>
                   <td className="py-2.5 px-2 text-right font-mono">{formatCurrency(item.unitPrice)}</td>
-                  <td className="py-2.5 px-2 text-right font-mono text-slate-400">
-                    {item.discountValue > 0 ? (item.discountType === 'percent' ? `${item.discountValue}%` : formatCurrency(item.discountValue)) : '-'}
-                  </td>
                   <td className="py-2.5 px-2 text-right font-bold text-slate-900 font-mono">
                     {formatCurrency(itemTotal)}
                   </td>
