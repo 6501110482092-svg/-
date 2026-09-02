@@ -13,6 +13,7 @@ import {
   calculateDocumentTotals,
   getDocumentTypeInfo,
   generateDocumentNumber,
+  getDiscountDisplayText,
 } from '../utils/documentCalculations';
 import { formatCurrency } from '../utils/thaiBaht';
 import { compressImageFile } from '../utils/storage';
@@ -48,6 +49,8 @@ import {
   Smartphone,
   Landmark,
   Check,
+  Edit3,
+  RotateCcw,
 } from 'lucide-react';
 
 interface DocumentEditorProps {
@@ -85,7 +88,19 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
 }) => {
   // Active Issuer Company / Branch state
   const [currentCompany, setCurrentCompany] = useState<CompanyInfo>(() => {
-    if (initialDocument?.company) return initialDocument.company;
+    if (initialDocument?.company) {
+      const matching =
+        companies && companies.length > 0
+          ? companies.find((c) => c.id === initialDocument.company.id) ||
+            companies.find((c) => c.name === initialDocument.company.name)
+          : companyInfo;
+      return {
+        ...initialDocument.company,
+        headerNameLine1: initialDocument.company.headerNameLine1 || matching?.headerNameLine1,
+        headerNameLine2: initialDocument.company.headerNameLine2 || matching?.headerNameLine2,
+        headerNameLine3: initialDocument.company.headerNameLine3 || matching?.headerNameLine3,
+      };
+    }
     if (companies && companies.length > 0) {
       return companies.find((c) => c.id === companyInfo.id) || companyInfo || companies[0];
     }
@@ -100,6 +115,23 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       'company-hq'
     );
   });
+
+  // Sync currentCompany if companies list or active companyInfo updates externally (e.g. saved from CompanyProfileModal)
+  useEffect(() => {
+    if (companies && companies.length > 0) {
+      const found =
+        companies.find((c) => c.id === selectedCompanyId) ||
+        companies.find((c) => c.id === currentCompany.id) ||
+        companies.find((c) => c.name === currentCompany.name) ||
+        companies.find((c) => c.id === companyInfo.id) ||
+        companies[0];
+      if (found) {
+        setCurrentCompany(found);
+      }
+    } else if (companyInfo) {
+      setCurrentCompany(companyInfo);
+    }
+  }, [companies, companyInfo, selectedCompanyId]);
 
   const [docType, setDocType] = useState<DocumentType>(initialDocument?.type || defaultType);
   const [documentNumber, setDocumentNumber] = useState<string>(
@@ -166,6 +198,12 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   );
   const [discountLabel, setDiscountLabel] = useState<string>(
     initialDocument?.discountLabel || ''
+  );
+  const [customThaiBahtText, setCustomThaiBahtText] = useState<string>(
+    initialDocument?.customThaiBahtText || ''
+  );
+  const [isCustomBahtText, setIsCustomBahtText] = useState<boolean>(
+    Boolean(initialDocument?.customThaiBahtText && initialDocument.customThaiBahtText.trim())
   );
 
   // Notes & Terms (Pulled from Branch defaults or initialDocument)
@@ -463,6 +501,8 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       overallDiscountType,
       discountLabel: discountLabel.trim() || undefined,
       ...totals,
+      thaiBahtText: isCustomBahtText && customThaiBahtText.trim() ? customThaiBahtText.trim() : totals.thaiBahtText,
+      customThaiBahtText: isCustomBahtText && customThaiBahtText.trim() ? customThaiBahtText.trim() : undefined,
       status,
       templateStyle,
       language: initialDocument?.language || 'th',
@@ -646,9 +686,21 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="font-bold text-slate-900 truncate">
-                  {currentCompany.name || 'ไม่ระบุชื่อบริษัท'}
-                </div>
+                {currentCompany.headerNameLine1 ? (
+                  <div className="font-bold text-slate-900 text-xs leading-snug">
+                    <div className="text-indigo-950 font-bold">{currentCompany.headerNameLine1}</div>
+                    {currentCompany.headerNameLine2 && (
+                      <div className="text-slate-700 font-medium text-[11px] mt-0.5">{currentCompany.headerNameLine2}</div>
+                    )}
+                    {currentCompany.headerNameLine3 && (
+                      <div className="text-slate-700 font-medium text-[11px]">{currentCompany.headerNameLine3}</div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="font-bold text-slate-900 truncate">
+                    {currentCompany.name || 'ไม่ระบุชื่อบริษัท'}
+                  </div>
+                )}
                 <div className="text-[11px] text-slate-500 font-mono mt-0.5 truncate">
                   เลขภาษี: {currentCompany.taxId || '-'}
                 </div>
@@ -1395,16 +1447,16 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                   </div>
 
                   {/* Custom Discount Label / Text */}
-                  <div className="bg-rose-50/50 p-2 rounded-lg border border-rose-100 space-y-1">
+                  <div className="bg-rose-50/50 p-2.5 rounded-lg border border-rose-100 space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-semibold text-slate-600">
-                        ข้อความต่อท้ายส่วนลด (เช่น (20%) หรือ (ลดพิเศษ)):
+                      <label className="text-[11px] font-semibold text-slate-700">
+                        ข้อความส่วนลดสีแดง (พิมพ์ระบุเองได้ทั้งหมด):
                       </label>
                       {discountLabel && (
                         <button
                           type="button"
                           onClick={() => setDiscountLabel('')}
-                          className="text-[10px] text-slate-400 hover:text-rose-600"
+                          className="text-[10px] text-slate-400 hover:text-rose-600 font-medium"
                         >
                           ล้างข้อความ
                         </button>
@@ -1414,73 +1466,53 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                       type="text"
                       value={discountLabel}
                       onChange={(e) => setDiscountLabel(e.target.value)}
-                      placeholder="เช่น (20%), (โปรโมชั่น), (ลด 10%)"
-                      className="w-full px-2 py-1 bg-white border border-rose-200 rounded text-xs text-rose-700 font-medium focus:ring-1 focus:ring-rose-500 focus:outline-none"
+                      placeholder={
+                        overallDiscountType === 'percent' && overallDiscountValue > 0
+                          ? `เช่น (${overallDiscountValue}%), ส่วนลดพิเศษ ${overallDiscountValue}%, ลดพิเศษ`
+                          : 'เช่น ส่วนลดพิเศษ, (ลดพิเศษ), ส่วนลดลูกค้าประจำ'
+                      }
+                      className="w-full px-2.5 py-1.5 bg-white border border-rose-200 rounded-lg text-xs text-rose-700 font-medium focus:ring-2 focus:ring-rose-400 focus:outline-none placeholder:text-rose-300"
                     />
-                    {/* Quick Chips */}
+                    {/* Quick Preset Buttons */}
                     <div className="flex flex-wrap items-center gap-1 pt-0.5">
-                      <span className="text-[9px] text-slate-400">ด่วน:</span>
+                      <span className="text-[9px] text-slate-400">ปุ่มเลือกด่วน:</span>
                       {overallDiscountType === 'percent' && overallDiscountValue > 0 && (
                         <button
                           type="button"
                           onClick={() => setDiscountLabel(`(${overallDiscountValue}%)`)}
-                          className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium"
+                          className="text-[9px] px-2 py-0.5 rounded-md bg-white hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium transition-colors"
                         >
                           ({overallDiscountValue}%)
                         </button>
                       )}
                       <button
                         type="button"
-                        onClick={() => setDiscountLabel('(5%)')}
-                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
-                      >
-                        (5%)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDiscountLabel('(10%)')}
-                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
-                      >
-                        (10%)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDiscountLabel('(15%)')}
-                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
-                      >
-                        (15%)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDiscountLabel('(20%)')}
-                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
-                      >
-                        (20%)
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => setDiscountLabel('(ลดพิเศษ)')}
-                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
+                        className="text-[9px] px-2 py-0.5 rounded-md bg-white hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium transition-colors"
                       >
                         (ลดพิเศษ)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountLabel('ส่วนลดพิเศษ')}
+                        className="text-[9px] px-2 py-0.5 rounded-md bg-white hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium transition-colors"
+                      >
+                        ส่วนลดพิเศษ
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountLabel('(โปรโมชั่น)')}
+                        className="text-[9px] px-2 py-0.5 rounded-md bg-white hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium transition-colors"
+                      >
+                        (โปรโมชั่น)
                       </button>
                     </div>
                   </div>
                 </div>
 
                 {totals.discountTotal > 0 && (
-                  <div className="flex justify-between text-rose-600 text-xs">
-                    <span>
-                      หักส่วนลดรวม (Discount)
-                      {discountLabel
-                        ? discountLabel.startsWith('(') || discountLabel.startsWith(' ')
-                          ? discountLabel
-                          : ` (${discountLabel})`
-                        : overallDiscountType === 'percent'
-                        ? ` (${overallDiscountValue}%)`
-                        : ''}
-                      :
-                    </span>
+                  <div className="flex justify-between text-rose-600 text-xs font-medium">
+                    <span>{getDiscountDisplayText(discountLabel, overallDiscountType, overallDiscountValue)}</span>
                     <span className="font-mono font-semibold">-฿{formatCurrency(totals.discountTotal)}</span>
                   </div>
                 )}
@@ -1519,14 +1551,74 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
               </div>
             </div>
 
-            {/* Thai Baht text */}
-            <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 mt-3">
-              <span className="text-[10px] text-indigo-600 font-bold block uppercase">
-                จำนวนเงินตัวอักษรภาษาไทย
-              </span>
-              <span className="font-bold text-indigo-950 text-xs mt-0.5 block">
-                ({totals.thaiBahtText})
-              </span>
+            {/* Thai Baht Text Box & Custom Manual Override */}
+            <div className="p-3 bg-indigo-50/80 rounded-xl border border-indigo-100 mt-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-indigo-700 font-bold block uppercase flex items-center gap-1">
+                  <FileText className="w-3 h-3 text-indigo-600" />
+                  จำนวนเงินตัวอักษรภาษาไทย / Total in Words
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {isCustomBahtText ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomBahtText(false);
+                        setCustomThaiBahtText('');
+                      }}
+                      className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-100/70 hover:bg-indigo-200 transition-colors"
+                      title="กลับไปใช้ข้อความตัวอักษรที่ระบบคำนวณอัตโนมัติ"
+                    >
+                      <RotateCcw className="w-2.5 h-2.5" />
+                      ใช้ตามระบบคำนวณ
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomBahtText(true);
+                        setCustomThaiBahtText(totals.thaiBahtText || '');
+                      }}
+                      className="text-[10px] text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 px-1.5 py-0.5 rounded bg-white hover:bg-indigo-100 border border-indigo-200 transition-colors"
+                      title="เปิดช่องพิมพ์แก้ไขข้อความตัวอักษรเอง"
+                    >
+                      <Edit3 className="w-2.5 h-2.5" />
+                      แก้ไขตัวอักษรเอง
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {isCustomBahtText ? (
+                <div className="space-y-1.5 bg-white p-2 rounded-lg border border-indigo-200 shadow-2xs">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-amber-700 font-medium">โหมดกำหนดเอง (พิมพ์ข้อความที่ต้องการ):</span>
+                    <button
+                      type="button"
+                      onClick={() => setCustomThaiBahtText(totals.thaiBahtText || '')}
+                      className="text-indigo-600 hover:underline text-[10px]"
+                    >
+                      คัดลอกจากระบบ ({totals.thaiBahtText})
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={customThaiBahtText}
+                    onChange={(e) => setCustomThaiBahtText(e.target.value)}
+                    placeholder={totals.thaiBahtText || 'ระบุจำนวนเงินตัวอักษร เช่น หนึ่งหมื่นบาทถ้วน'}
+                    className="w-full px-2 py-1.5 text-xs font-bold text-indigo-950 bg-indigo-50/40 border border-indigo-300 rounded focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                  <div className="text-[10px] text-slate-500 flex items-center justify-between">
+                    <span>แสดงบนเอกสาร: <strong className="text-indigo-900">({customThaiBahtText.trim() || totals.thaiBahtText})</strong></span>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white/80 px-2.5 py-1.5 rounded-lg border border-indigo-100/70">
+                  <span className="font-bold text-indigo-950 text-xs block">
+                    ({totals.thaiBahtText || 'ศูนย์บาทถ้วน'})
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         </div>

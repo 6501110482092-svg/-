@@ -464,11 +464,11 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                         ชื่อบริษัท / ชื่อร้านค้า (ภาษาไทย) *
                       </label>
                       <span className={`text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border ${
-                        (currentProfile.name || '').length > 45
+                        (currentProfile.name || '').length > 55
                           ? 'bg-amber-50 text-amber-800 border-amber-200'
                           : 'bg-slate-50 text-slate-500 border-slate-200'
                       }`}>
-                        {(currentProfile.name || '').length}/45 ตัวอักษร
+                        {(currentProfile.name || '').length}/55 ตัวอักษร
                       </span>
                     </div>
                     <input
@@ -482,7 +482,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                     />
                     {(currentProfile.name || '').length > 45 && !currentProfile.headerNameLine1 && (
                       <p className="text-[11px] text-amber-700 mt-1 flex items-center gap-1">
-                        <span>💡 ชื่อค่อนข้างยาว (เกิน 45 ตัวอักษร) แนะนำให้ใช้กล่อง <strong>"จัดหน้า/ล็อกบรรทัดชื่อบนหัวเอกสาร"</strong> ด้านล่างเพื่อแบ่งบรรทัดไม่ให้ตกหล่น</span>
+                        <span>💡 ชื่อค่อนข้างยาว แนะนำให้ใช้กล่อง <strong>"จัดหน้า/ล็อกบรรทัดชื่อบนหัวเอกสาร"</strong> ด้านล่างเพื่อแบ่งบรรทัดไม่ให้ตกหล่น</span>
                       </p>
                     )}
                   </div>
@@ -496,7 +496,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                           <span>จัดหน้า/ล็อกบรรทัดชื่อบนหัวเอกสาร (Fix Line Breaks on Header)</span>
                         </div>
                         <p className="text-[11px] text-indigo-700 mt-0.5">
-                          กำหนดคำในบรรทัดที่ 1 และ 2 ป้องกันคำยาวแล้วตัดตกบรรทัดกลางคำบนหัวเอกสาร (รองรับได้ถึง 45 ตัวอักษร/บรรทัดบนกระดาษจริง)
+                          กำหนดคำในบรรทัดที่ 1 และ 2 ป้องกันคำยาวแล้วตัดตกบรรทัดกลางคำบนหัวเอกสาร (รองรับได้ถึง 55 ตัวอักษร/บรรทัดบนกระดาษจริง)
                         </p>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -543,16 +543,16 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                             className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border transition-colors ${
                               (currentProfile.headerNameLine1 || '').length === 0
                                 ? 'bg-slate-100 text-slate-400 border-slate-200'
-                                : (currentProfile.headerNameLine1 || '').length <= 45
+                                : (currentProfile.headerNameLine1 || '').length <= 55
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : (currentProfile.headerNameLine1 || '').length <= 52
+                                : (currentProfile.headerNameLine1 || '').length <= 65
                                 ? 'bg-amber-50 text-amber-700 border-amber-200'
                                 : 'bg-rose-50 text-rose-700 border-rose-200'
                             }`}
-                            title="ความยาวตัวอักษรที่แนะนำสำหรับ 1 บรรทัดบนกระดาษ (สูงสุด 45 ตัวอักษร)"
+                            title="ความยาวตัวอักษรที่แนะนำสำหรับ 1 บรรทัดบนกระดาษ (สูงสุด 55 ตัวอักษร)"
                           >
-                            {(currentProfile.headerNameLine1 || '').length}/45
-                            {(currentProfile.headerNameLine1 || '').length > 45 && ' (เกิน 45 ตัว)'}
+                            {(currentProfile.headerNameLine1 || '').length}/55
+                            {(currentProfile.headerNameLine1 || '').length > 55 && ' (เกิน 55 ตัว)'}
                           </span>
                         </div>
                         <input
@@ -562,7 +562,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                           onChange={handleChange}
                           placeholder={currentProfile.name || 'เช่น บีเค แล็บเฮลท์ สหคลินิก-หจก.บีเค แลบ เฮลท์'}
                           className={`w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-xs font-medium ${
-                            (currentProfile.headerNameLine1 || '').length > 45
+                            (currentProfile.headerNameLine1 || '').length > 55
                               ? 'border-amber-400 text-amber-950 bg-amber-50/20'
                               : 'border-indigo-300 text-slate-800'
                           }`}
@@ -579,16 +579,16 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                             className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border transition-colors ${
                               (currentProfile.headerNameLine2 || '').length === 0
                                 ? 'bg-slate-100 text-slate-400 border-slate-200'
-                                : (currentProfile.headerNameLine2 || '').length <= 45
+                                : (currentProfile.headerNameLine2 || '').length <= 55
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : (currentProfile.headerNameLine2 || '').length <= 52
+                                : (currentProfile.headerNameLine2 || '').length <= 65
                                 ? 'bg-amber-50 text-amber-700 border-amber-200'
                                 : 'bg-rose-50 text-rose-700 border-rose-200'
                             }`}
-                            title="ความยาวตัวอักษรที่แนะนำสำหรับ 1 บรรทัดบนกระดาษ (สูงสุด 45 ตัวอักษร)"
+                            title="ความยาวตัวอักษรที่แนะนำสำหรับ 1 บรรทัดบนกระดาษ (สูงสุด 55 ตัวอักษร)"
                           >
-                            {(currentProfile.headerNameLine2 || '').length}/45
-                            {(currentProfile.headerNameLine2 || '').length > 45 && ' (เกิน 45 ตัว)'}
+                            {(currentProfile.headerNameLine2 || '').length}/55
+                            {(currentProfile.headerNameLine2 || '').length > 55 && ' (เกิน 55 ตัว)'}
                           </span>
                         </div>
                         <input
@@ -598,7 +598,7 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                           onChange={handleChange}
                           placeholder="เช่น เซ็นเตอร์ คลินิกเทคนิคการแพทย์และกายภาพบำบัด"
                           className={`w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-xs font-medium ${
-                            (currentProfile.headerNameLine2 || '').length > 45
+                            (currentProfile.headerNameLine2 || '').length > 55
                               ? 'border-amber-400 text-amber-950 bg-amber-50/20'
                               : 'border-indigo-300 text-slate-800'
                           }`}

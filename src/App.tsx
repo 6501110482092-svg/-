@@ -239,6 +239,59 @@ export default function App() {
     if (newActiveId) {
       setActiveCompanyId(newActiveId);
     }
+
+    // Propagate company updates (such as headerNameLine1, headerNameLine2, logo, etc.) to all existing documents
+    setDocuments((prevDocs) =>
+      prevDocs.map((doc) => {
+        const matchingComp = updatedCompanies.find(
+          (c) =>
+            (doc.company?.id && c.id === doc.company.id) ||
+            (doc.company?.name && c.name === doc.company.name)
+        );
+        if (matchingComp) {
+          return {
+            ...doc,
+            company: {
+              ...doc.company,
+              ...matchingComp,
+              headerNameLine1: matchingComp.headerNameLine1,
+              headerNameLine2: matchingComp.headerNameLine2,
+              headerNameLine3: matchingComp.headerNameLine3,
+              signatureUrl: doc.company?.signatureUrl || matchingComp.signatureUrl,
+              stampUrl: doc.company?.stampUrl || matchingComp.stampUrl,
+            },
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return doc;
+      })
+    );
+
+    // If currently editing a document, update its company reference too
+    if (editingDoc) {
+      const match = updatedCompanies.find(
+        (c) =>
+          (editingDoc.company?.id && c.id === editingDoc.company.id) ||
+          (editingDoc.company?.name && c.name === editingDoc.company.name)
+      );
+      if (match) {
+        setEditingDoc((prev) =>
+          prev
+            ? {
+                ...prev,
+                company: {
+                  ...prev.company,
+                  ...match,
+                  headerNameLine1: match.headerNameLine1,
+                  headerNameLine2: match.headerNameLine2,
+                  headerNameLine3: match.headerNameLine3,
+                },
+              }
+            : null
+        );
+      }
+    }
+
     setToastMessage({
       text: `บันทึกข้อมูลสาขา & กิจการ (${updatedCompanies.length} สาขา) สำเร็จ`,
       type: 'success',

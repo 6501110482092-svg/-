@@ -1,8 +1,9 @@
 import React from 'react';
 import { DocumentModel } from '../../types';
-import { getDocumentTypeInfo } from '../../utils/documentCalculations';
+import { getDocumentTypeInfo, getDiscountDisplayText, getDocumentBahtText } from '../../utils/documentCalculations';
 import { formatCurrency } from '../../utils/thaiBaht';
 import { PromptPayBox } from './PromptPayBox';
+import { getCompanyHeaderLines } from '../../utils/companyHeader';
 import { MapPin } from 'lucide-react';
 
 interface TemplateProps {
@@ -12,6 +13,7 @@ interface TemplateProps {
 export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
   const typeInfo = getDocumentTypeInfo(document.type);
   const company = document.company || ({} as typeof document.company);
+  const headerLines = getCompanyHeaderLines(company);
   const customer = document.customer || ({} as typeof document.customer);
   const items = Array.isArray(document.items) ? document.items : [];
 
@@ -31,15 +33,11 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
               )}
               <div className="min-w-0 flex-1">
                 <h1 className="font-bold text-[14px] sm:text-[15px] text-slate-950 uppercase tracking-tight leading-snug">
-                  {company.headerNameLine1 ? (
-                    <div className="space-y-0.5">
-                      <div className="leading-snug">{company.headerNameLine1}</div>
-                      {company.headerNameLine2 && <div className="leading-snug">{company.headerNameLine2}</div>}
-                      {company.headerNameLine3 && <div className="leading-snug">{company.headerNameLine3}</div>}
-                    </div>
-                  ) : (
-                    <span className="whitespace-pre-line leading-snug">{company.name || 'ชื่อสถานประกอบการ'}</span>
-                  )}
+                  <div className="space-y-0.5">
+                    {headerLines.map((line, idx) => (
+                      <div key={idx} className="leading-snug">{line}</div>
+                    ))}
+                  </div>
                 </h1>
                 {company.nameEn && (
                   <p className="text-[11px] text-slate-600 font-medium whitespace-pre-line leading-tight mt-0.5">{company.nameEn}</p>
@@ -169,7 +167,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
           <div className="col-span-7 flex flex-col justify-between space-y-2">
             <div className="border border-slate-300 bg-slate-100 p-2.5 rounded">
               <div className="text-[10px] text-slate-500 font-bold uppercase">จำนวนเงินตัวอักษร</div>
-              <div className="font-bold text-slate-900 text-sm">{document.thaiBahtText}</div>
+              <div className="font-bold text-slate-900 text-sm">{getDocumentBahtText(document)}</div>
             </div>
 
             <div className="space-y-1 text-slate-600 text-[11px]">
@@ -188,19 +186,9 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
               <span className="font-mono">{formatCurrency(document.subtotal)} บาท</span>
             </div>
             {document.discountTotal > 0 && (
-              <div className="flex justify-between text-rose-600">
-                <span>
-                  ส่วนลด
-                  {document.discountLabel
-                    ? document.discountLabel.startsWith('(') || document.discountLabel.startsWith(' ')
-                      ? document.discountLabel
-                      : ` (${document.discountLabel})`
-                    : document.overallDiscountType === 'percent' && document.overallDiscountValue
-                    ? ` (${document.overallDiscountValue}%)`
-                    : ''}
-                  :
-                </span>
-                <span className="font-mono">-{formatCurrency(document.discountTotal)} บาท</span>
+              <div className="flex justify-between text-rose-600 font-medium">
+                <span>{getDiscountDisplayText(document.discountLabel, document.overallDiscountType, document.overallDiscountValue)}</span>
+                <span className="font-mono font-semibold">-{formatCurrency(document.discountTotal)} บาท</span>
               </div>
             )}
             <div className="flex justify-between font-medium">

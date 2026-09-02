@@ -111,6 +111,7 @@ export interface DocumentModel {
   grandTotal: number; // Total with VAT
   netPayment: number; // Total after Withholding Tax deduction
   thaiBahtText: string;
+  customThaiBahtText?: string; // ข้อความจำนวนเงินตัวอักษรที่พิมพ์กำหนดเอง (Override)
   
   status: DocumentStatus;
   templateStyle: TemplateStyle;

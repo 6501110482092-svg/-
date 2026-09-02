@@ -22,7 +22,7 @@ function convertGroup(numberStr: string): string {
       } else if (pos === 1 && digit === 1) {
         result += 'สิบ';
       } else {
-        result += THAI_DIGITS[digit] + (pos === 1 ? '' : THAI_POSITIONS[pos]);
+        result += THAI_DIGITS[digit] + THAI_POSITIONS[pos];
       }
     }
   }

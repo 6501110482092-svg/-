@@ -170,3 +170,34 @@ export function getStatusInfo(status: string) {
       return { label: status, color: 'bg-slate-100 text-slate-700 border-slate-300' };
   }
 }
+
+/**
+ * Resolves the display label for the discount row on templates and preview.
+ * If a custom discountLabel is entered by the user, it is used directly as the full label.
+ * If empty, it defaults to standard "ส่วนลดรวม (Discount)" with percent if applicable.
+ */
+export function getDiscountDisplayText(
+  discountLabel?: string,
+  overallDiscountType?: 'amount' | 'percent',
+  overallDiscountValue?: number
+): string {
+  if (discountLabel && discountLabel.trim()) {
+    const trimmed = discountLabel.trim();
+    return trimmed.endsWith(':') ? trimmed : `${trimmed}:`;
+  }
+  const percentText =
+    overallDiscountType === 'percent' && overallDiscountValue && overallDiscountValue > 0
+      ? ` (${overallDiscountValue}%)`
+      : '';
+  return `ส่วนลดรวม (Discount)${percentText}:`;
+}
+
+/**
+ * Resolves the effective Thai Baht text for a document, honoring custom override if present.
+ */
+export function getDocumentBahtText(doc?: { customThaiBahtText?: string; thaiBahtText?: string }): string {
+  if (doc?.customThaiBahtText && doc.customThaiBahtText.trim()) {
+    return doc.customThaiBahtText.trim();
+  }
+  return doc?.thaiBahtText || 'ศูนย์บาทถ้วน';
+}

@@ -1,8 +1,9 @@
 import React from 'react';
 import { DocumentModel } from '../../types';
-import { getDocumentTypeInfo } from '../../utils/documentCalculations';
+import { getDocumentTypeInfo, getDiscountDisplayText, getDocumentBahtText } from '../../utils/documentCalculations';
 import { formatCurrency } from '../../utils/thaiBaht';
 import { PromptPayBox } from './PromptPayBox';
+import { getCompanyHeaderLines } from '../../utils/companyHeader';
 
 interface TemplateProps {
   document: DocumentModel;
@@ -11,6 +12,7 @@ interface TemplateProps {
 export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
   const typeInfo = getDocumentTypeInfo(document.type);
   const company = document.company || ({} as typeof document.company);
+  const headerLines = getCompanyHeaderLines(company);
   const customer = document.customer || ({} as typeof document.customer);
   const items = Array.isArray(document.items) ? document.items : [];
 
@@ -24,15 +26,11 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
               <img src={company.logoUrl} alt="Logo" className="h-12 max-h-16 w-auto max-w-[140px] object-contain mb-2" />
             ) : null}
             <h1 className="font-bold text-[14px] sm:text-[15px] text-slate-950">
-              {company.headerNameLine1 ? (
-                <div className="space-y-0.5">
-                  <div className="leading-snug">{company.headerNameLine1}</div>
-                  {company.headerNameLine2 && <div className="leading-snug">{company.headerNameLine2}</div>}
-                  {company.headerNameLine3 && <div className="leading-snug">{company.headerNameLine3}</div>}
-                </div>
-              ) : (
-                <span className="whitespace-pre-line leading-snug">{company.name || 'ชื่อสถานประกอบการ'}</span>
-              )}
+              <div className="space-y-0.5">
+                {headerLines.map((line, idx) => (
+                  <div key={idx} className="leading-snug">{line}</div>
+                ))}
+              </div>
             </h1>
             {company.nameEn && <p className="text-xs text-slate-500 font-medium whitespace-pre-line leading-tight mt-0.5">{company.nameEn}</p>}
             <p className="text-slate-600 text-xs max-w-sm mt-0.5">{company.address || '-'}</p>
@@ -112,7 +110,7 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
           <div className="col-span-7 space-y-2">
             <div className="p-2 bg-slate-50 rounded">
               <span className="text-[10px] text-slate-400 block font-semibold">จำนวนเงินตัวอักษร</span>
-              <span className="font-bold text-slate-800">({document.thaiBahtText})</span>
+              <span className="font-bold text-slate-800">({getDocumentBahtText(document)})</span>
             </div>
             {document.notes && <div className="text-[11px] text-slate-500">หมายเหตุ: {document.notes}</div>}
           </div>
@@ -123,19 +121,9 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
               <span className="font-mono">{formatCurrency(document.subtotal)} ฿</span>
             </div>
             {document.discountTotal > 0 && (
-              <div className="flex justify-between text-rose-500">
-                <span>
-                  ส่วนลด
-                  {document.discountLabel
-                    ? document.discountLabel.startsWith('(') || document.discountLabel.startsWith(' ')
-                      ? document.discountLabel
-                      : ` (${document.discountLabel})`
-                    : document.overallDiscountType === 'percent' && document.overallDiscountValue
-                    ? ` (${document.overallDiscountValue}%)`
-                    : ''}
-                  :
-                </span>
-                <span className="font-mono">-{formatCurrency(document.discountTotal)} ฿</span>
+              <div className="flex justify-between text-rose-500 font-medium">
+                <span>{getDiscountDisplayText(document.discountLabel, document.overallDiscountType, document.overallDiscountValue)}</span>
+                <span className="font-mono font-semibold">-{formatCurrency(document.discountTotal)} ฿</span>
               </div>
             )}
             {document.vatType !== 'none' && (
