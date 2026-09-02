@@ -110,7 +110,7 @@ export const PromptPayBox: React.FC<PromptPayBoxProps> = ({ document, accentColo
               <div className="flex items-baseline gap-1.5">
                 <span className="text-slate-500 text-[9px] w-14 shrink-0">ธนาคาร:</span>
                 <span className="font-bold text-slate-900 text-[11px]">
-                  {bankAccount.bankName} {bankAccount.branch && <span className="font-normal text-slate-600 text-[10px]">({bankAccount.branch})</span>}
+                  {bankAccount.bankName}
                 </span>
               </div>
               <div className="flex items-baseline gap-1.5">
