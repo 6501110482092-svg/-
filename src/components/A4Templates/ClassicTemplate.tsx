@@ -26,8 +26,18 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ document }) => {
               className="h-16 max-h-20 w-auto max-w-[160px] mx-auto object-contain mb-2"
             />
           )}
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950">{company.name || 'ชื่อสถานประกอบการ'}</h1>
-          {company.nameEn && <p className="text-xs sm:text-sm font-medium text-slate-600 mt-0.5">{company.nameEn}</p>}
+          <h1 className="text-base sm:text-lg md:text-xl font-bold tracking-tight text-slate-950">
+            {company.headerNameLine1 ? (
+              <div className="space-y-0.5">
+                <div className="leading-snug">{company.headerNameLine1}</div>
+                {company.headerNameLine2 && <div className="leading-snug">{company.headerNameLine2}</div>}
+                {company.headerNameLine3 && <div className="leading-snug">{company.headerNameLine3}</div>}
+              </div>
+            ) : (
+              <span className="whitespace-pre-line leading-snug">{company.name || 'ชื่อสถานประกอบการ'}</span>
+            )}
+          </h1>
+          {company.nameEn && <p className="text-xs sm:text-sm font-medium text-slate-600 mt-0.5 whitespace-pre-line">{company.nameEn}</p>}
           <p className="text-xs sm:text-sm text-slate-700 mt-0.5">{company.address || '-'}</p>
           <p className="text-xs sm:text-sm text-slate-800 mt-0.5">
             เลขประจำตัวผู้เสียภาษี <span className="font-mono font-bold text-slate-950">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขาที่ ${company.branchNo || '-'}`}) โทร: <strong className="text-slate-950">{company.phone || '-'}</strong>
@@ -135,7 +145,17 @@ export const ClassicTemplate: React.FC<TemplateProps> = ({ document }) => {
             </div>
             {document.discountTotal > 0 && (
               <div className="flex justify-between text-rose-600">
-                <span>หักส่วนลด:</span>
+                <span>
+                  หักส่วนลด
+                  {document.discountLabel
+                    ? document.discountLabel.startsWith('(') || document.discountLabel.startsWith(' ')
+                      ? document.discountLabel
+                      : ` (${document.discountLabel})`
+                    : document.overallDiscountType === 'percent' && document.overallDiscountValue
+                    ? ` (${document.overallDiscountValue}%)`
+                    : ''}
+                  :
+                </span>
                 <span className="font-mono">-{formatCurrency(document.discountTotal)}</span>
               </div>
             )}

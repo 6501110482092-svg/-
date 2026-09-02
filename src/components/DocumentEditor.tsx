@@ -164,6 +164,9 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
   const [overallDiscountType, setOverallDiscountType] = useState<'amount' | 'percent'>(
     initialDocument?.overallDiscountType || 'amount'
   );
+  const [discountLabel, setDiscountLabel] = useState<string>(
+    initialDocument?.discountLabel || ''
+  );
 
   // Notes & Terms (Pulled from Branch defaults or initialDocument)
   const [notes, setNotes] = useState<string>(() => {
@@ -458,6 +461,7 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
       withholdingTaxRate,
       overallDiscountValue,
       overallDiscountType,
+      discountLabel: discountLabel.trim() || undefined,
       ...totals,
       status,
       templateStyle,
@@ -1348,34 +1352,135 @@ export const DocumentEditor: React.FC<DocumentEditorProps> = ({
                 </div>
 
                 {/* Direct Discount Input */}
-                <div className="flex items-center justify-between text-slate-700 text-xs py-1 border-y border-slate-200/80">
-                  <span className="font-semibold text-slate-700">ส่วนลด (Discount):</span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="relative flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        step="any"
-                        value={overallDiscountValue === 0 ? '' : overallDiscountValue}
-                        onChange={(e) => setOverallDiscountValue(parseFloat(e.target.value) || 0)}
-                        placeholder="0.00"
-                        className="w-28 px-2.5 py-1 text-right font-mono font-bold text-rose-600 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
-                      />
+                <div className="py-1 border-y border-slate-200/80 space-y-1.5">
+                  <div className="flex items-center justify-between text-slate-700 text-xs">
+                    <span className="font-semibold text-slate-700">ส่วนลด (Discount):</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="relative flex items-center">
+                        <input
+                          type="number"
+                          min="0"
+                          step="any"
+                          value={overallDiscountValue === 0 ? '' : overallDiscountValue}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setOverallDiscountValue(val);
+                            if (overallDiscountType === 'percent' && (!discountLabel || discountLabel.startsWith('('))) {
+                              setDiscountLabel(val > 0 ? `(${val}%)` : '');
+                            }
+                          }}
+                          placeholder="0.00"
+                          className="w-28 px-2.5 py-1 text-right font-mono font-bold text-rose-600 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none text-xs"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextType = overallDiscountType === 'percent' ? 'amount' : 'percent';
+                          setOverallDiscountType(nextType);
+                          if (nextType === 'percent' && overallDiscountValue > 0 && !discountLabel) {
+                            setDiscountLabel(`(${overallDiscountValue}%)`);
+                          }
+                        }}
+                        className={`px-2 py-1 rounded-lg text-[11px] font-bold shrink-0 transition-colors ${
+                          overallDiscountType === 'percent'
+                            ? 'bg-indigo-600 text-white shadow-xs'
+                            : 'bg-slate-200 hover:bg-slate-300 text-slate-800'
+                        }`}
+                        title="สลับระหว่าง บาท (฿) หรือ เปอร์เซ็นต์ (%)"
+                      >
+                        {overallDiscountType === 'percent' ? '%' : '฿'}
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => setOverallDiscountType((prev) => (prev === 'percent' ? 'amount' : 'percent'))}
-                      className="px-2 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold shrink-0 transition-colors"
-                      title="สลับระหว่าง บาท (฿) หรือ เปอร์เซ็นต์ (%)"
-                    >
-                      {overallDiscountType === 'percent' ? '%' : '฿'}
-                    </button>
+                  </div>
+
+                  {/* Custom Discount Label / Text */}
+                  <div className="bg-rose-50/50 p-2 rounded-lg border border-rose-100 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-semibold text-slate-600">
+                        ข้อความต่อท้ายส่วนลด (เช่น (20%) หรือ (ลดพิเศษ)):
+                      </label>
+                      {discountLabel && (
+                        <button
+                          type="button"
+                          onClick={() => setDiscountLabel('')}
+                          className="text-[10px] text-slate-400 hover:text-rose-600"
+                        >
+                          ล้างข้อความ
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      value={discountLabel}
+                      onChange={(e) => setDiscountLabel(e.target.value)}
+                      placeholder="เช่น (20%), (โปรโมชั่น), (ลด 10%)"
+                      className="w-full px-2 py-1 bg-white border border-rose-200 rounded text-xs text-rose-700 font-medium focus:ring-1 focus:ring-rose-500 focus:outline-none"
+                    />
+                    {/* Quick Chips */}
+                    <div className="flex flex-wrap items-center gap-1 pt-0.5">
+                      <span className="text-[9px] text-slate-400">ด่วน:</span>
+                      {overallDiscountType === 'percent' && overallDiscountValue > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setDiscountLabel(`(${overallDiscountValue}%)`)}
+                          className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200 font-medium"
+                        >
+                          ({overallDiscountValue}%)
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setDiscountLabel('(5%)')}
+                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
+                      >
+                        (5%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountLabel('(10%)')}
+                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
+                      >
+                        (10%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountLabel('(15%)')}
+                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
+                      >
+                        (15%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountLabel('(20%)')}
+                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
+                      >
+                        (20%)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDiscountLabel('(ลดพิเศษ)')}
+                        className="text-[9px] px-1.5 py-0.5 rounded bg-white hover:bg-rose-100 text-rose-700 border border-rose-200"
+                      >
+                        (ลดพิเศษ)
+                      </button>
+                    </div>
                   </div>
                 </div>
 
                 {totals.discountTotal > 0 && (
                   <div className="flex justify-between text-rose-600 text-xs">
-                    <span>หักส่วนลดรวม ({overallDiscountType === 'percent' ? `${overallDiscountValue}%` : 'บาท'}):</span>
+                    <span>
+                      หักส่วนลดรวม (Discount)
+                      {discountLabel
+                        ? discountLabel.startsWith('(') || discountLabel.startsWith(' ')
+                          ? discountLabel
+                          : ` (${discountLabel})`
+                        : overallDiscountType === 'percent'
+                        ? ` (${overallDiscountValue}%)`
+                        : ''}
+                      :
+                    </span>
                     <span className="font-mono font-semibold">-฿{formatCurrency(totals.discountTotal)}</span>
                   </div>
                 )}

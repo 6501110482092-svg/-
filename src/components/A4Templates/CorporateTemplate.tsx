@@ -19,22 +19,30 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
     <div className="bg-white p-5 sm:p-7 font-['Sarabun',sans-serif] text-slate-800 text-xs leading-relaxed max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[285mm] print:min-h-0 print:p-3 print:m-0 print:max-w-full flex flex-col justify-between border-t-8 border-slate-800">
       <div>
         {/* Header Block */}
-        <div className="flex justify-between items-start pb-3 border-b-2 border-slate-800 mb-3">
-          <div className="w-3/5 pr-3">
-            <div className="flex items-center gap-3 mb-2">
+        <div className="flex justify-between items-start pb-3 border-b-2 border-slate-800 mb-3 gap-3">
+          <div className="flex-1 min-w-0 pr-2">
+            <div className="flex items-start sm:items-center gap-3 mb-2">
               {company.logoUrl && (
                 <img
                   src={company.logoUrl}
                   alt="Company Logo"
-                  className="h-16 max-h-20 w-auto max-w-[150px] object-contain shrink-0"
+                  className="h-14 max-h-16 w-auto max-w-[130px] object-contain shrink-0"
                 />
               )}
-              <div>
-                <h1 className="font-bold text-base sm:text-lg text-slate-950 uppercase tracking-wide leading-snug">
-                  {company.name || 'ชื่อสถานประกอบการ'}
+              <div className="min-w-0 flex-1">
+                <h1 className="font-bold text-[14px] sm:text-[15px] text-slate-950 uppercase tracking-tight leading-snug">
+                  {company.headerNameLine1 ? (
+                    <div className="space-y-0.5">
+                      <div className="leading-snug">{company.headerNameLine1}</div>
+                      {company.headerNameLine2 && <div className="leading-snug">{company.headerNameLine2}</div>}
+                      {company.headerNameLine3 && <div className="leading-snug">{company.headerNameLine3}</div>}
+                    </div>
+                  ) : (
+                    <span className="whitespace-pre-line leading-snug">{company.name || 'ชื่อสถานประกอบการ'}</span>
+                  )}
                 </h1>
                 {company.nameEn && (
-                  <p className="text-xs text-slate-600 font-medium">{company.nameEn}</p>
+                  <p className="text-[11px] text-slate-600 font-medium whitespace-pre-line leading-tight mt-0.5">{company.nameEn}</p>
                 )}
               </div>
             </div>
@@ -49,7 +57,7 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
             </div>
           </div>
 
-          <div className="w-2/5 text-right pl-3 border-l border-slate-300">
+          <div className="w-[195px] sm:w-[210px] shrink-0 text-right pl-3 border-l border-slate-300">
             <div className="text-xl sm:text-2xl font-black text-slate-950 tracking-tight leading-tight">
               {typeInfo.titleTh}
             </div>
@@ -181,7 +189,17 @@ export const CorporateTemplate: React.FC<TemplateProps> = ({ document }) => {
             </div>
             {document.discountTotal > 0 && (
               <div className="flex justify-between text-rose-600">
-                <span>ส่วนลด:</span>
+                <span>
+                  ส่วนลด
+                  {document.discountLabel
+                    ? document.discountLabel.startsWith('(') || document.discountLabel.startsWith(' ')
+                      ? document.discountLabel
+                      : ` (${document.discountLabel})`
+                    : document.overallDiscountType === 'percent' && document.overallDiscountValue
+                    ? ` (${document.overallDiscountValue}%)`
+                    : ''}
+                  :
+                </span>
                 <span className="font-mono">-{formatCurrency(document.discountTotal)} บาท</span>
               </div>
             )}

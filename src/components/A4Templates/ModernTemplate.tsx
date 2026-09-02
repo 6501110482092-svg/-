@@ -22,27 +22,35 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
     <div className="bg-white p-4 sm:p-5 font-['Sarabun',sans-serif] text-slate-800 text-xs leading-normal max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[280mm] print:min-h-0 print:p-0 print:m-0 print:max-w-full flex flex-col justify-between">
       <div>
         {/* Top Header Row */}
-        <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-2 mb-2">
-          {/* Company Brand & Details */}
-          <div className="w-7/12 pr-2">
-            <div className="flex items-center gap-2.5 mb-1">
+        <div className="flex justify-between items-start border-b-2 border-indigo-600 pb-2 mb-2 gap-3">
+          {/* Company Brand & Details (Expansive Left Column) */}
+          <div className="flex-1 min-w-0 pr-1">
+            <div className="flex items-start sm:items-center gap-2.5 mb-1">
               {company.logoUrl ? (
                 <img
                   src={company.logoUrl}
                   alt="Company Logo"
-                  className="h-11 max-h-13 w-auto max-w-[120px] object-contain rounded shrink-0"
+                  className="h-10 max-h-12 w-auto max-w-[110px] object-contain rounded shrink-0"
                 />
               ) : (
-                <div className="w-10 h-10 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-lg shadow-xs shrink-0">
+                <div className="w-9 h-9 bg-indigo-600 text-white rounded-lg flex items-center justify-center font-bold text-base shadow-xs shrink-0">
                   {(company.name || 'บ').charAt(0)}
                 </div>
               )}
-              <div>
-                <h1 className="font-bold text-sm sm:text-base text-slate-900 leading-tight">
-                  {company.name || 'ชื่อสถานประกอบการ'}
+              <div className="min-w-0 flex-1">
+                <h1 className="font-bold text-[13px] sm:text-[14px] text-slate-900 leading-tight tracking-tight">
+                  {company.headerNameLine1 ? (
+                    <div className="space-y-0.5">
+                      <div className="leading-snug">{company.headerNameLine1}</div>
+                      {company.headerNameLine2 && <div className="leading-snug">{company.headerNameLine2}</div>}
+                      {company.headerNameLine3 && <div className="leading-snug">{company.headerNameLine3}</div>}
+                    </div>
+                  ) : (
+                    <span className="whitespace-pre-line leading-snug">{company.name || 'ชื่อสถานประกอบการ'}</span>
+                  )}
                 </h1>
                 {company.nameEn && (
-                  <p className="text-[10px] text-slate-600 font-medium">{company.nameEn}</p>
+                  <p className="text-[10px] text-slate-600 font-medium whitespace-pre-line leading-tight mt-0.5">{company.nameEn}</p>
                 )}
               </div>
             </div>
@@ -68,8 +76,8 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
             </div>
           </div>
 
-          {/* Document Title & Meta */}
-          <div className="w-5/12 text-right pl-2">
+          {/* Document Title & Meta (Compact Right Column) */}
+          <div className="w-[185px] sm:w-[195px] shrink-0 text-right">
             <div className="inline-block text-right mb-0.5">
               <span className="inline-block px-1.5 py-0.2 bg-indigo-50 text-indigo-700 text-[9px] font-bold rounded uppercase tracking-wider mb-0.5 border border-indigo-100">
                 {typeInfo.subtitleTh}
@@ -245,7 +253,17 @@ export const ModernTemplate: React.FC<TemplateProps> = ({ document }) => {
             </div>
             {document.discountTotal > 0 && (
               <div className="flex justify-between text-rose-600">
-                <span>ส่วนลดรวม (Discount):</span>
+                <span>
+                  ส่วนลดรวม (Discount)
+                  {document.discountLabel
+                    ? document.discountLabel.startsWith('(') || document.discountLabel.startsWith(' ')
+                      ? document.discountLabel
+                      : ` (${document.discountLabel})`
+                    : document.overallDiscountType === 'percent' && document.overallDiscountValue
+                    ? ` (${document.overallDiscountValue}%)`
+                    : ''}
+                  :
+                </span>
                 <span className="font-mono font-medium">-{formatCurrency(document.discountTotal)} บาท</span>
               </div>
             )}

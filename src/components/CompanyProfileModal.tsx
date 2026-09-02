@@ -459,9 +459,18 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-slate-700 font-semibold mb-1">
-                      ชื่อบริษัท / ชื่อร้านค้า (ภาษาไทย) *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-slate-700 font-semibold">
+                        ชื่อบริษัท / ชื่อร้านค้า (ภาษาไทย) *
+                      </label>
+                      <span className={`text-[11px] font-mono font-medium px-2 py-0.5 rounded-md border ${
+                        (currentProfile.name || '').length > 45
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-slate-50 text-slate-500 border-slate-200'
+                      }`}>
+                        {(currentProfile.name || '').length}/45 ตัวอักษร
+                      </span>
+                    </div>
                     <input
                       type="text"
                       name="name"
@@ -471,6 +480,160 @@ export const CompanyProfileModal: React.FC<CompanyProfileModalProps> = ({
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                       placeholder="เช่น บริษัท สยาม คลาวด์ เทคโนโลยี จำกัด"
                     />
+                    {(currentProfile.name || '').length > 45 && !currentProfile.headerNameLine1 && (
+                      <p className="text-[11px] text-amber-700 mt-1 flex items-center gap-1">
+                        <span>💡 ชื่อค่อนข้างยาว (เกิน 45 ตัวอักษร) แนะนำให้ใช้กล่อง <strong>"จัดหน้า/ล็อกบรรทัดชื่อบนหัวเอกสาร"</strong> ด้านล่างเพื่อแบ่งบรรทัดไม่ให้ตกหล่น</span>
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Fix Line Breaks on Document Header (จัดบรรทัดชื่อที่หัวกระดาษ) */}
+                  <div className="sm:col-span-2 p-3.5 bg-indigo-50/60 border border-indigo-200 rounded-xl space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div className="text-xs font-bold text-indigo-950 flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-indigo-600"></span>
+                          <span>จัดหน้า/ล็อกบรรทัดชื่อบนหัวเอกสาร (Fix Line Breaks on Header)</span>
+                        </div>
+                        <p className="text-[11px] text-indigo-700 mt-0.5">
+                          กำหนดคำในบรรทัดที่ 1 และ 2 ป้องกันคำยาวแล้วตัดตกบรรทัดกลางคำบนหัวเอกสาร (รองรับได้ถึง 45 ตัวอักษร/บรรทัดบนกระดาษจริง)
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!currentProfile.name) return;
+                            handleUpdateCurrentProfile({
+                              headerNameLine1: currentProfile.name,
+                              headerNameLine2: '',
+                              headerNameLine3: '',
+                            });
+                          }}
+                          className="text-[10px] bg-white hover:bg-indigo-100 text-indigo-700 font-semibold px-2 py-1 rounded border border-indigo-200 transition-colors shadow-2xs"
+                        >
+                          ⚡ ดึงจากชื่อหลัก
+                        </button>
+                        {(currentProfile.headerNameLine1 || currentProfile.headerNameLine2 || currentProfile.headerNameLine3) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleUpdateCurrentProfile({
+                                headerNameLine1: '',
+                                headerNameLine2: '',
+                                headerNameLine3: '',
+                              });
+                            }}
+                            className="text-[10px] bg-white hover:bg-rose-50 text-rose-600 font-medium px-2 py-1 rounded border border-rose-200 transition-colors"
+                          >
+                            ล้างการจัดบรรทัด
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {/* Line 1 */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[11px] font-semibold text-slate-700">
+                            บรรทัดที่ 1 (Header Line 1)
+                          </label>
+                          <span
+                            className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border transition-colors ${
+                              (currentProfile.headerNameLine1 || '').length === 0
+                                ? 'bg-slate-100 text-slate-400 border-slate-200'
+                                : (currentProfile.headerNameLine1 || '').length <= 45
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : (currentProfile.headerNameLine1 || '').length <= 52
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border-rose-200'
+                            }`}
+                            title="ความยาวตัวอักษรที่แนะนำสำหรับ 1 บรรทัดบนกระดาษ (สูงสุด 45 ตัวอักษร)"
+                          >
+                            {(currentProfile.headerNameLine1 || '').length}/45
+                            {(currentProfile.headerNameLine1 || '').length > 45 && ' (เกิน 45 ตัว)'}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          name="headerNameLine1"
+                          value={currentProfile.headerNameLine1 || ''}
+                          onChange={handleChange}
+                          placeholder={currentProfile.name || 'เช่น บีเค แล็บเฮลท์ สหคลินิก-หจก.บีเค แลบ เฮลท์'}
+                          className={`w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-xs font-medium ${
+                            (currentProfile.headerNameLine1 || '').length > 45
+                              ? 'border-amber-400 text-amber-950 bg-amber-50/20'
+                              : 'border-indigo-300 text-slate-800'
+                          }`}
+                        />
+                      </div>
+
+                      {/* Line 2 */}
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="block text-[11px] font-semibold text-slate-700">
+                            บรรทัดที่ 2 (Header Line 2 - ถ้ามี)
+                          </label>
+                          <span
+                            className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border transition-colors ${
+                              (currentProfile.headerNameLine2 || '').length === 0
+                                ? 'bg-slate-100 text-slate-400 border-slate-200'
+                                : (currentProfile.headerNameLine2 || '').length <= 45
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                : (currentProfile.headerNameLine2 || '').length <= 52
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border-rose-200'
+                            }`}
+                            title="ความยาวตัวอักษรที่แนะนำสำหรับ 1 บรรทัดบนกระดาษ (สูงสุด 45 ตัวอักษร)"
+                          >
+                            {(currentProfile.headerNameLine2 || '').length}/45
+                            {(currentProfile.headerNameLine2 || '').length > 45 && ' (เกิน 45 ตัว)'}
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          name="headerNameLine2"
+                          value={currentProfile.headerNameLine2 || ''}
+                          onChange={handleChange}
+                          placeholder="เช่น เซ็นเตอร์ คลินิกเทคนิคการแพทย์และกายภาพบำบัด"
+                          className={`w-full px-3 py-1.5 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white text-xs font-medium ${
+                            (currentProfile.headerNameLine2 || '').length > 45
+                              ? 'border-amber-400 text-amber-950 bg-amber-50/20'
+                              : 'border-indigo-300 text-slate-800'
+                          }`}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Live Header Name Preview */}
+                    <div className="bg-white p-3 rounded-lg border border-indigo-100 flex items-start gap-2.5 text-xs">
+                      <span className="text-[10px] text-slate-400 font-medium shrink-0 pt-0.5">พรีวิวหัวกระดาษ:</span>
+                      <div className="flex-1 font-bold text-slate-900 leading-tight">
+                        {currentProfile.headerNameLine1 ? (
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-slate-900">{currentProfile.headerNameLine1}</span>
+                              <span className="text-[9px] text-slate-400 font-normal">({(currentProfile.headerNameLine1 || '').length} ตัวอักษร)</span>
+                            </div>
+                            {currentProfile.headerNameLine2 && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-slate-900">{currentProfile.headerNameLine2}</span>
+                                <span className="text-[9px] text-slate-400 font-normal">({(currentProfile.headerNameLine2 || '').length} ตัวอักษร)</span>
+                              </div>
+                            )}
+                            {currentProfile.headerNameLine3 && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-slate-900">{currentProfile.headerNameLine3}</span>
+                                <span className="text-[9px] text-slate-400 font-normal">({(currentProfile.headerNameLine3 || '').length} ตัวอักษร)</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-slate-700">{currentProfile.name || 'ชื่อสถานประกอบการ'}</div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                   <div className="sm:col-span-2">

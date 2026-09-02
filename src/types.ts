@@ -14,6 +14,9 @@ export interface CompanyInfo {
   isDefault?: boolean;
   name: string;
   nameEn?: string;
+  headerNameLine1?: string; // จัดบรรทัดที่ 1 สำหรับแสดงบนหัวเอกสาร (ป้องกันคำตกหล่น)
+  headerNameLine2?: string; // จัดบรรทัดที่ 2 สำหรับแสดงบนหัวเอกสาร
+  headerNameLine3?: string; // จัดบรรทัดที่ 3 สำหรับแสดงบนหัวเอกสาร (ถ้ามี)
   taxId: string;
   branchType: 'headquarters' | 'branch';
   branchNo: string;
@@ -97,6 +100,7 @@ export interface DocumentModel {
   subtotal: number;
   overallDiscountType?: 'amount' | 'percent';
   overallDiscountValue?: number;
+  discountLabel?: string; // ข้อความกำกับส่วนลด เช่น "(20%)" หรือ "(โปรโมชั่น)" หรือ "(ลดพิเศษ 10%)"
   discountTotal: number;
   afterDiscount: number;
   vatType: VatType;

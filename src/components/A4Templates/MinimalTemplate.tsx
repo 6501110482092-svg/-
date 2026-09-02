@@ -18,20 +18,30 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
     <div className="bg-white p-6 sm:p-8 md:p-10 font-['Sarabun',sans-serif] text-slate-700 text-xs leading-relaxed max-w-[210mm] w-full mx-auto shadow-sm print:shadow-none min-h-[297mm] print:min-h-0 print:p-4 print:m-0 print:max-w-full flex flex-col justify-between">
       <div>
         {/* Minimal Header */}
-        <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-200">
-          <div>
+        <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-200 gap-3">
+          <div className="flex-1 min-w-0 pr-2">
             {company.logoUrl ? (
-              <img src={company.logoUrl} alt="Logo" className="h-14 max-h-18 w-auto max-w-[160px] object-contain mb-2" />
+              <img src={company.logoUrl} alt="Logo" className="h-12 max-h-16 w-auto max-w-[140px] object-contain mb-2" />
             ) : null}
-            <h1 className="font-bold text-base sm:text-lg text-slate-950">{company.name || 'ชื่อสถานประกอบการ'}</h1>
-            {company.nameEn && <p className="text-xs text-slate-500 font-medium">{company.nameEn}</p>}
+            <h1 className="font-bold text-[14px] sm:text-[15px] text-slate-950">
+              {company.headerNameLine1 ? (
+                <div className="space-y-0.5">
+                  <div className="leading-snug">{company.headerNameLine1}</div>
+                  {company.headerNameLine2 && <div className="leading-snug">{company.headerNameLine2}</div>}
+                  {company.headerNameLine3 && <div className="leading-snug">{company.headerNameLine3}</div>}
+                </div>
+              ) : (
+                <span className="whitespace-pre-line leading-snug">{company.name || 'ชื่อสถานประกอบการ'}</span>
+              )}
+            </h1>
+            {company.nameEn && <p className="text-xs text-slate-500 font-medium whitespace-pre-line leading-tight mt-0.5">{company.nameEn}</p>}
             <p className="text-slate-600 text-xs max-w-sm mt-0.5">{company.address || '-'}</p>
             <p className="text-slate-700 text-xs mt-0.5">
               เลขผู้เสียภาษี: <span className="font-mono text-slate-950 font-bold">{company.taxId || '-'}</span> ({company.branchType === 'headquarters' ? 'สำนักงานใหญ่' : `สาขา ${company.branchNo || '-'}`})
             </p>
           </div>
 
-          <div className="text-right">
+          <div className="w-[185px] sm:w-[200px] shrink-0 text-right">
             <div className="text-xl sm:text-2xl font-bold tracking-tight text-slate-950 mb-0.5">
               {typeInfo.titleTh}
             </div>
@@ -114,7 +124,17 @@ export const MinimalTemplate: React.FC<TemplateProps> = ({ document }) => {
             </div>
             {document.discountTotal > 0 && (
               <div className="flex justify-between text-rose-500">
-                <span>ส่วนลด:</span>
+                <span>
+                  ส่วนลด
+                  {document.discountLabel
+                    ? document.discountLabel.startsWith('(') || document.discountLabel.startsWith(' ')
+                      ? document.discountLabel
+                      : ` (${document.discountLabel})`
+                    : document.overallDiscountType === 'percent' && document.overallDiscountValue
+                    ? ` (${document.overallDiscountValue}%)`
+                    : ''}
+                  :
+                </span>
                 <span className="font-mono">-{formatCurrency(document.discountTotal)} ฿</span>
               </div>
             )}
